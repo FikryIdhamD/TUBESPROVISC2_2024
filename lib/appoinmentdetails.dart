@@ -380,24 +380,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                 ),
                 SizedBox(height: 10),
                 Text(
-                  '$speciality appointment on $hari, $formattedDate at $hospitalName.',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
-                ),
-                Text(
-                  'Scheduled for $jam',
-                  style: GoogleFonts.poppins(),
-                ),
-                SizedBox(height: 20),
-                Center(
-                  child: Image.network(
-                    'https://img.icons8.com/metro/100/qr-code.png',
-                    width: 100,
-                    height: 100,
-                  ),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  'Upon arrival at the hospital, use the provided QR code to confirm your appointment. Scanning the code will automatically place you in the queue and notify you when it\'s your turn.',
+                  'Appointment already scheduled for $speciality on $hari, $formattedDate at $hospitalName. Scheduled for $jam',
                   style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
                 ),
               ],

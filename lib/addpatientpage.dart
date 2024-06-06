@@ -44,7 +44,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
       }),
     );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Patient added successfully')),
       );
