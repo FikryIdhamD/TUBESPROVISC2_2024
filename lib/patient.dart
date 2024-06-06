@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'bloc.dart';
+import 'addpatientpage.dart';
 
 class PatientProfilePage extends StatefulWidget {
   @override
@@ -229,7 +230,13 @@ class _PatientProfilePageState extends State<PatientProfilePage> {
   }
 
   void _addPatient() {
-    // Implementasi untuk menambahkan pasien
+    final auth = Provider.of<Auth>(context, listen: false);
+    int userId = auth.userId;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddPatientPage(userId: userId)),
+    );
   }
 
   void _requestChangeData(Patient patient) {
