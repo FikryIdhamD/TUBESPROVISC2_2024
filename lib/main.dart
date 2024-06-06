@@ -2,8 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:stproject/bloc.dart';
-import 'package:stproject/second_screen.dart';
+import 'bloc.dart';
 import 'appointments.dart';
 import 'records.dart';
 import 'login.dart';
@@ -29,8 +28,10 @@ class MyApp extends StatelessWidget {
         // Add your providers here
         ChangeNotifierProvider(create: (_) => ArtikelProvider()..fetchData()),
         ChangeNotifierProvider<Auth>(create: (_) => Auth()),
-        ChangeNotifierProvider(create: (_) => HospitalProvider()..fetchHospitals()),
-        ChangeNotifierProvider(create: (_) => SpecialityProvider()..fetchSpecialities()),
+        ChangeNotifierProvider(
+            create: (_) => HospitalProvider()..fetchHospitals()),
+        ChangeNotifierProvider(
+            create: (_) => SpecialityProvider()..fetchSpecialities()),
       ],
       child: MaterialApp(
         home: Home(),
@@ -52,11 +53,12 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
   List<AppointmentItem> scheduledList = [];
 
   try {
-    final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/book_appointments/'));
+    final response = await http
+        .get(Uri.parse('http://127.0.0.1:8000/api/book_appointments/'));
 
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
-      
+
       // Assuming your API response is a list of appointments in JSON format
       List<dynamic> appointmentsData = jsonData as List<dynamic>;
 
@@ -66,10 +68,9 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
         int date = appointmentData['jadwal_id'];
         String title;
         int status = appointmentData['status_id'];
-        if(status == 6){
+        if (status == 6) {
           title = 'Finished Appointment';
-        }
-        else{
+        } else {
           title = 'Scheduled Appointment';
         }
 
@@ -84,7 +85,7 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
 
         if (status == 6 && iduser == userId) {
           historyList.add(item);
-        } else if(iduser == userId){
+        } else if (iduser == userId) {
           scheduledList.add(item);
         }
       }
@@ -107,17 +108,15 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
   }
 }
 
-
-
 class _HomeState extends State<Home> {
-  
   List<AppointmentItem> historyList = []; // Define class-level variables
   List<AppointmentItem> scheduledList = [];
 
   @override
   void initState() {
     super.initState();
-    final auth = Provider.of<Auth>(context, listen: false); // Use listen: false to prevent unnecessary rebuilds
+    final auth = Provider.of<Auth>(context,
+        listen: false); // Use listen: false to prevent unnecessary rebuilds
     fetchDataAndUpdateLists(auth.userId).then((lists) {
       setState(() {
         historyList = lists[0]; // Assign values to class-level variables
@@ -236,7 +235,7 @@ class _HomeState extends State<Home> {
                       _buildSquareButtonWithText(
                         context,
                         'Book\nAppointment',
-                        HomeScreen(selectedUserIndex:auth.userId),
+                        HomeScreen(selectedUserIndex: auth.userId),
                         'assets/Book-Btn.png',
                       ),
 
