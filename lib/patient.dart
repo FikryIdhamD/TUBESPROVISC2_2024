@@ -280,10 +280,11 @@ class _ChangeDataPageState extends State<ChangeDataPage> {
 
   late TextEditingController _nikController;
   late TextEditingController _namaPasienController;
-  late TextEditingController _genderController;
   late TextEditingController _alamatController;
   late TextEditingController _tanggalLahirController;
   late TextEditingController _noTelpController;
+
+  String? _selectedGender;
 
   @override
   void initState() {
@@ -295,15 +296,18 @@ class _ChangeDataPageState extends State<ChangeDataPage> {
     _nikController = TextEditingController(text: widget.patient.nik);
     _namaPasienController =
         TextEditingController(text: widget.patient.namaPasien);
-    _genderController = TextEditingController(text: widget.patient.gender);
     _alamatController = TextEditingController(text: widget.patient.alamat);
     _tanggalLahirController =
         TextEditingController(text: widget.patient.tanggalLahir);
     _noTelpController = TextEditingController(text: widget.patient.noTelp);
+    _selectedGender = widget.patient.gender; // Initialize the gender
   }
 
   Future<void> _updatePatientData() async {
     final patientId = widget.patient.idPasien;
+
+    // Format tanggal sebelum mengirim ke server
+    final formattedTanggalLahir = _formatDate(_tanggalLahirController.text);
 
     final url = Uri.parse('http://127.0.0.1:8000/api/pasiens/$patientId');
 
@@ -315,9 +319,9 @@ class _ChangeDataPageState extends State<ChangeDataPage> {
       body: jsonEncode({
         'nik': _nikController.text,
         'nama_pasien': _namaPasienController.text,
-        'gender': _genderController.text,
+        'gender': _selectedGender,
         'alamat': _alamatController.text,
-        'tanggal_lahir': _tanggalLahirController.text,
+        'tanggal_lahir': formattedTanggalLahir,
         'no_telp': _noTelpController.text,
       }),
     );
@@ -327,10 +331,7 @@ class _ChangeDataPageState extends State<ChangeDataPage> {
         SnackBar(content: Text('Update successful')),
       );
 
-      // Hapus halaman saat ini dari tumpukan navigasi
       Navigator.pop(context);
-
-      // Navigasi ke halaman profil pasien setelah pembaruan berhasil
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -344,11 +345,22 @@ class _ChangeDataPageState extends State<ChangeDataPage> {
     }
   }
 
+  // Fungsi untuk memastikan tanggal dalam format "yyyy-MM-dd"
+  String _formatDate(String date) {
+    final parts = date.split('-');
+    if (parts.length == 3) {
+      final year = parts[0];
+      final month = parts[1].padLeft(2, '0');
+      final day = parts[2].padLeft(2, '0');
+      return '$year-$month-$day';
+    }
+    return date;
+  }
+
   @override
   void dispose() {
     _nikController.dispose();
     _namaPasienController.dispose();
-    _genderController.dispose();
     _alamatController.dispose();
     _tanggalLahirController.dispose();
     _noTelpController.dispose();
@@ -421,11 +433,22 @@ class _ChangeDataPageState extends State<ChangeDataPage> {
                   },
                 ),
                 SizedBox(height: 10),
-                TextFormField(
-                  controller: _genderController,
+                DropdownButtonFormField<String>(
+                  value: _selectedGender,
                   decoration: InputDecoration(
                     labelText: 'Gender',
                   ),
+                  items: ['Laki-laki', 'Perempuan']
+                      .map((label) => DropdownMenuItem(
+                            child: Text(label),
+                            value: label,
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedGender = value;
+                    });
+                  },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Gender tidak boleh kosong';
@@ -451,7 +474,24 @@ class _ChangeDataPageState extends State<ChangeDataPage> {
                   controller: _tanggalLahirController,
                   decoration: InputDecoration(
                     labelText: 'Tanggal Lahir',
+                    hintText: 'yyyy-mm-dd',
                   ),
+                  readOnly: true,
+                  onTap: () async {
+                    DateTime? pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(1900),
+                      lastDate: DateTime(2100),
+                    );
+                    if (pickedDate != null) {
+                      String formattedDate =
+                          "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+                      setState(() {
+                        _tanggalLahirController.text = formattedDate;
+                      });
+                    }
+                  },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Tanggal Lahir tidak boleh kosong';
