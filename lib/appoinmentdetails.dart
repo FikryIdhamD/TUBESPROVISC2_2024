@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:intl/intl.dart';
+
 class AppointmentDetailPage extends StatefulWidget {
   final int appointmentId;
 
@@ -20,6 +22,9 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
   late String hospitalAddress = 'Loading...';
   late String patientName = 'Loading...';
   late String patientDOB = 'Loading...';
+  late String hari = 'Loading...';
+  late String jam = 'Loading...';
+  late DateTime tanggal; // Nullable DateTime
   late int statusId = -1;
 
   @override
@@ -39,10 +44,29 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
       final doctorId = appointmentData['dokter_id'];
       final patientId = appointmentData['pasien_id'];
       final statusId = appointmentData['status_id'];
+      final jadwalId = appointmentData['jadwal_id'];
+      final tanggal = DateTime.parse(appointmentData['tanggal']);
 
       setState(() {
         this.statusId = statusId;
+        this.tanggal = tanggal;
       });
+
+      // Fetch all jadwals
+      final jadwalsResponse =
+          await http.get(Uri.parse('http://127.0.0.1:8000/api/jadwals/'));
+      if (jadwalsResponse.statusCode == 200) {
+        final List jadwalsData = json.decode(jadwalsResponse.body);
+        final jadwalData =
+            jadwalsData.firstWhere((jadwal) => jadwal['id_jadwal'] == jadwalId);
+        final hari = jadwalData['hari'];
+        final jam = jadwalData['jam'];
+
+        setState(() {
+          this.hari = hari;
+          this.jam = jam;
+        });
+      }
 
       // Fetch all doctors
       final doctorsResponse =
@@ -112,7 +136,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
           _buildPatientDetails(),
           _buildAppointmentProcess(),
           _buildAppointmentDetail(),
-          _buildCircleRow('Scheduled'), // Change text as needed
+          _buildCircleRow(statusId), // Change text as needed
         ],
       ),
     );
@@ -338,6 +362,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
   }
 
   Widget _buildAppointmentDetail() {
+  String formattedDate = DateFormat('dd MMMM yyyy').format(tanggal);
     return Container(
       padding: EdgeInsets.all(10.0),
       margin: EdgeInsets.only(bottom: 16.0),
@@ -345,32 +370,198 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Appointment Detail',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 10),
-          Text(
-            'Cardiology appointment on Thursday, 2 September 2024 at Mereun Hospital Bandung.',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
-          ),
-          Text(
-            'Scheduled for 18:00',
-            style: GoogleFonts.poppins(),
-          ),
-          SizedBox(height: 20),
-          Center(
-            child: Image.network(
-              'https://img.icons8.com/metro/100/qr-code.png',
-              width: 100,
-              height: 100,
-            ),
-          ),
-          SizedBox(height: 20),
-          Text(
-            'Upon arrival at the hospital, use the provided QR code to confirm your appointment. Scanning the code will automatically place you in the queue and notify you when it\'s your turn.',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
-          ),
+          if (statusId == 1) // Add this line
+            Column(
+              // Wrap your children in a Column widget
+              children: [
+                Text(
+                  'Appointment Detail',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  '$speciality appointment on $hari, $formattedDate at $hospitalName.',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
+                ),
+                Text(
+                  'Scheduled for $jam',
+                  style: GoogleFonts.poppins(),
+                ),
+                SizedBox(height: 20),
+                Center(
+                  child: Image.network(
+                    'https://img.icons8.com/metro/100/qr-code.png',
+                    width: 100,
+                    height: 100,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Upon arrival at the hospital, use the provided QR code to confirm your appointment. Scanning the code will automatically place you in the queue and notify you when it\'s your turn.',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
+                ),
+              ],
+            ), // Add this line
+          if (statusId == 2) // Add this line
+            Column(
+              // Wrap your children in a Column widget
+              children: [
+                Text(
+                  'Appointment Detail',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  '$speciality appointment on $hari, $formattedDate at $hospitalName.',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
+                ),
+                Text(
+                  'Scheduled for $jam',
+                  style: GoogleFonts.poppins(),
+                ),
+                SizedBox(height: 20),
+                Center(
+                  child: Image.network(
+                    'https://img.icons8.com/metro/100/qr-code.png',
+                    width: 100,
+                    height: 100,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Upon arrival at the hospital, use the provided QR code to confirm your appointment. Scanning the code will automatically place you in the queue and notify you when it\'s your turn.',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
+                ),
+              ],
+            ), // Add this line
+          if (statusId == 3) // Add this line
+            Column(
+              // Wrap your children in a Column widget
+              children: [
+                Text(
+                  'Appointment Detail',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'Cardiology appointment on Thursday, 2 September 2024 at Mereun Hospital Bandung.',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
+                ),
+                Text(
+                  'Scheduled for 18:00',
+                  style: GoogleFonts.poppins(),
+                ),
+                SizedBox(height: 20),
+                Center(
+                  child: Image.network(
+                    'https://img.icons8.com/metro/100/qr-code.png',
+                    width: 100,
+                    height: 100,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Upon arrival at the hospital, use the provided QR code to confirm your appointment. Scanning the code will automatically place you in the queue and notify you when it\'s your turn.',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
+                ),
+              ],
+            ), // Add this line
+          if (statusId == 4) // Add this line
+            Column(
+              // Wrap your children in a Column widget
+              children: [
+                Text(
+                  'Appointment Detail',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'Cardiology appointment on Thursday, 2 September 2024 at Mereun Hospital Bandung.',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
+                ),
+                Text(
+                  'Scheduled for 18:00',
+                  style: GoogleFonts.poppins(),
+                ),
+                SizedBox(height: 20),
+                Center(
+                  child: Image.network(
+                    'https://img.icons8.com/metro/100/qr-code.png',
+                    width: 100,
+                    height: 100,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Upon arrival at the hospital, use the provided QR code to confirm your appointment. Scanning the code will automatically place you in the queue and notify you when it\'s your turn.',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
+                ),
+              ],
+            ), // Add this line
+          if (statusId == 5) // Add this line
+            Column(
+              // Wrap your children in a Column widget
+              children: [
+                Text(
+                  'Appointment Detail',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'Cardiology appointment on Thursday, 2 September 2024 at Mereun Hospital Bandung.',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
+                ),
+                Text(
+                  'Scheduled for 18:00',
+                  style: GoogleFonts.poppins(),
+                ),
+                SizedBox(height: 20),
+                Center(
+                  child: Image.network(
+                    'https://img.icons8.com/metro/100/qr-code.png',
+                    width: 100,
+                    height: 100,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Upon arrival at the hospital, use the provided QR code to confirm your appointment. Scanning the code will automatically place you in the queue and notify you when it\'s your turn.',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
+                ),
+              ],
+            ), // Add this line
+          if (statusId == 6) // Add this line
+            Column(
+              // Wrap your children in a Column widget
+              children: [
+                Text(
+                  'Appointment Detail',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'Cardiology appointment on Thursday, 2 September 2024 at Mereun Hospital Bandung.',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
+                ),
+                Text(
+                  'Scheduled for 18:00',
+                  style: GoogleFonts.poppins(),
+                ),
+                SizedBox(height: 20),
+                Center(
+                  child: Image.network(
+                    'https://img.icons8.com/metro/100/qr-code.png',
+                    width: 100,
+                    height: 100,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Upon arrival at the hospital, use the provided QR code to confirm your appointment. Scanning the code will automatically place you in the queue and notify you when it\'s your turn.',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
+                ),
+              ],
+            ), // Add this line
         ],
       ),
     );
@@ -482,15 +673,15 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
     }
   }
 
-  Widget _buildCircleRow(String text) {
-    Color circleColor = Colors.grey;
+  Widget _buildCircleRow(int statusId) {
+    Color circleColor;
 
-    if (text == 'Scheduled') {
+    if (statusId == 1) {
       circleColor = Colors.yellow;
-    } else if (text == 'Ongoing') {
-      circleColor = Colors.green;
-    } else if (text == 'Finished') {
+    } else if (statusId == 6) {
       circleColor = Colors.red;
+    } else {
+      circleColor = Colors.green;
     }
 
     return Row(
@@ -505,14 +696,18 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
         ),
         SizedBox(width: 10),
         Text(
-          text,
+          statusId == 1
+              ? 'Scheduled'
+              : statusId == 6
+                  ? 'Finished'
+                  : 'On Going',
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.normal,
           ),
         ),
-        if (text == 'Scheduled') Spacer(),
-        if (text == 'Scheduled')
+        if (statusId == 1) Spacer(),
+        if (statusId == 1)
           ElevatedButton(
             onPressed: () {
               // Logic to cancel appointment
