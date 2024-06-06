@@ -64,8 +64,14 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
         int id = appointmentData['id'];
         int iduser = appointmentData['user_id'];
         int date = appointmentData['jadwal_id'];
-        String title = 'Scheduled Appointment';
+        String title;
         int status = appointmentData['status_id'];
+        if(status == 6){
+          title = 'Finished Appointment';
+        }
+        else{
+          title = 'Scheduled Appointment';
+        }
 
         AppointmentItem item = AppointmentItem(
           id: id,
@@ -76,7 +82,7 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
           onPressed: () {},
         );
 
-        if (status == 4 && iduser == userId) {
+        if (status == 6 && iduser == userId) {
           historyList.add(item);
         } else if(iduser == userId){
           scheduledList.add(item);
