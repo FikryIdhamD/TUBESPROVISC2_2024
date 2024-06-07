@@ -24,7 +24,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
   late String patientDOB = 'Loading...';
   late String hari = 'Loading...';
   late String jam = 'Loading...';
-  late DateTime tanggal; // Nullable DateTime
+  late DateTime tanggal = DateTime(1111, 11, 11); 
   late int statusId = -1;
 
   @override
