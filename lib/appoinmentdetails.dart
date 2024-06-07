@@ -177,6 +177,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
           _buildPatientDetails(),
           _buildAppointmentProcess(),
           _buildAppointmentDetail(),
+          if(statusId == 4) _buildPatientNurseDetails(),
           _buildCircleRow(statusId), // Change text as needed
         ],
       ),
@@ -303,6 +304,29 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
           SizedBox(height: 20),
           _buildDetailRow('Name', patientName),
           _buildDetailRow('DOB', patientDOB),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPatientNurseDetails() {
+    return Container(
+      padding: EdgeInsets.all(10.0),
+      margin: EdgeInsets.only(bottom: 16.0),
+      decoration: _boxDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Text(
+              'Patient Details from Nurse Station',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+            ),
+          ),
+          SizedBox(height: 20),
+          _buildDetailRow('BP', "125/85 mm Hg"),
+          _buildDetailRow('Height', "173 cm"),
+          _buildDetailRow('Weight', "59 Kg"),
         ],
       ),
     );
@@ -468,24 +492,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                 ),
                 SizedBox(height: 10),
                 Text(
-                  'Cardiology appointment on Thursday, 2 September 2024 at Mereun Hospital Bandung.',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
-                ),
-                Text(
-                  'Scheduled for 18:00',
-                  style: GoogleFonts.poppins(),
-                ),
-                SizedBox(height: 20),
-                Center(
-                  child: Image.network(
-                    'https://img.icons8.com/metro/100/qr-code.png',
-                    width: 100,
-                    height: 100,
-                  ),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  'Upon arrival at the hospital, use the provided QR code to confirm your appointment. Scanning the code will automatically place you in the queue and notify you when it\'s your turn.',
+                  'Please go to the Nurse Station for further examination regarding your health condition.',
                   style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
                 ),
               ],
@@ -500,24 +507,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                 ),
                 SizedBox(height: 10),
                 Text(
-                  'Cardiology appointment on Thursday, 2 September 2024 at Mereun Hospital Bandung.',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
-                ),
-                Text(
-                  'Scheduled for 18:00',
-                  style: GoogleFonts.poppins(),
-                ),
-                SizedBox(height: 20),
-                Center(
-                  child: Image.network(
-                    'https://img.icons8.com/metro/100/qr-code.png',
-                    width: 100,
-                    height: 100,
-                  ),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  'Upon arrival at the hospital, use the provided QR code to confirm your appointment. Scanning the code will automatically place you in the queue and notify you when it\'s your turn.',
+                  'Kindly enter Room 12L for a consultation with the doctor. Thank you',
                   style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
                 ),
               ],
@@ -559,29 +549,12 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
               // Wrap your children in a Column widget
               children: [
                 Text(
-                  'Appointment Detail',
+                  'Finished Appointment',
                   style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 10),
                 Text(
-                  'Cardiology appointment on Thursday, 2 September 2024 at Mereun Hospital Bandung.',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
-                ),
-                Text(
-                  'Scheduled for 18:00',
-                  style: GoogleFonts.poppins(),
-                ),
-                SizedBox(height: 20),
-                Center(
-                  child: Image.network(
-                    'https://img.icons8.com/metro/100/qr-code.png',
-                    width: 100,
-                    height: 100,
-                  ),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  'Upon arrival at the hospital, use the provided QR code to confirm your appointment. Scanning the code will automatically place you in the queue and notify you when it\'s your turn.',
+                  '$speciality appointment on $hari, $formattedDate at $hospitalName.',
                   style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
                 ),
               ],
