@@ -664,6 +664,7 @@ class _HomeState extends State<Home> {
           bottom: Radius.circular(30), // Sesuaikan nilai sesuai keinginan Anda
         ),
       ),
+      leading: null,
     );
   }
 }

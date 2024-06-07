@@ -25,7 +25,13 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
   late String hari = 'Loading...';
   late String jam = 'Loading...';
   late DateTime tanggal = DateTime(1111, 11, 11); 
+  late int userId = -1;
+  late int doctorId = -1;
+  late int patientId = -1;
+  late int jadwalId = -1;
   late int statusId = -1;
+  late int hospitalId = -1;
+
 
   @override
   void initState() {
@@ -41,14 +47,21 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
       final List appointmentsData = json.decode(appointmentsResponse.body);
       final appointmentData = appointmentsData.firstWhere(
           (appointment) => appointment['id'] == widget.appointmentId);
+      final userId = appointmentData['user_id'];
       final doctorId = appointmentData['dokter_id'];
       final patientId = appointmentData['pasien_id'];
       final statusId = appointmentData['status_id'];
       final jadwalId = appointmentData['jadwal_id'];
+      final hospitalId = appointmentData['hospital_id'];
       final tanggal = DateTime.parse(appointmentData['tanggal']);
 
       setState(() {
+        this.userId = userId;
+        this.doctorId = doctorId;
+        this.patientId = patientId;
+        this.jadwalId = jadwalId;
         this.statusId = statusId;
+        this.hospitalId = hospitalId;
         this.tanggal = tanggal;
       });
 
@@ -121,6 +134,34 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
       }
     }
   }
+  Future<void> updateStatus() async {
+  int newStatusId = (statusId == 6) ? 1 : statusId + 1;
+
+  final url = Uri.parse('http://127.0.0.1:8000/api/book_appointments/${widget.appointmentId}');
+  final response = await http.put(
+    url,
+    headers: {"Content-Type": "application/json"},
+    body: json.encode({
+      "status_id": newStatusId,
+      "user_id": userId,  // Make sure these fields are available
+      "pasien_id": patientId,
+      "hospital_id": hospitalId,
+      "dokter_id": doctorId,
+      "jadwal_id": jadwalId,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    setState(() {
+      statusId = newStatusId;
+    });
+    fetchAppointmentDetails();
+  } else {
+    print('Failed to update status. Status code: ${response.statusCode}');
+    print('Response body: ${response.body}');
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -657,17 +698,23 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
   }
 
   Widget _buildCircleRow(int statusId) {
-    Color circleColor;
+  Color circleColor;
 
-    if (statusId == 1) {
-      circleColor = Colors.yellow;
-    } else if (statusId == 6) {
-      circleColor = Colors.red;
-    } else {
-      circleColor = Colors.green;
-    }
+  if (statusId == 1) {
+    circleColor = Colors.yellow;
+  } else if (statusId == 6) {
+    circleColor = Colors.red;
+  } else {
+    circleColor = Colors.green;
+  }
 
-    return Row(
+  return InkWell(
+    onTap: () {
+      print('Row tapped! Status ID Before: $statusId');
+      updateStatus();
+      print('Row tapped! Status ID After: $statusId');
+    },
+    child: Row(
       children: [
         Container(
           width: 20.0,
@@ -694,6 +741,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
           ElevatedButton(
             onPressed: () {
               // Logic to cancel appointment
+              print('Cancel Appointment button pressed!');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Color.fromRGBO(255, 0, 0, 1),
@@ -710,8 +758,9 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
             ),
           ),
       ],
-    );
-  }
+    ),
+  );
+}
 }
 
 class DashedLineWidget extends StatelessWidget {
