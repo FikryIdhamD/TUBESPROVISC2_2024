@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'dart:math';
+import 'payment.dart';
 import 'package:intl/intl.dart';
 
 class AppointmentDetailPage extends StatefulWidget {
@@ -24,19 +25,29 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
   late String patientDOB = 'Loading...';
   late String hari = 'Loading...';
   late String jam = 'Loading...';
-  late DateTime tanggal = DateTime(1111, 11, 11); 
+  late DateTime tanggal = DateTime(1111, 11, 11);
   late int userId = -1;
   late int doctorId = -1;
   late int patientId = -1;
   late int jadwalId = -1;
   late int statusId = -1;
   late int hospitalId = -1;
-
+  late int medicalId = -1;
+  late String bloodpressure = 'Loading...';
+  late String tinggi_badan = 'Loading...';
+  late String berat_badan = 'Loading...';
+  late String complain = 'Loading...';
+  late String hasil_pemeriksaan = 'Loading...';
+  late String riwayat_medis = 'Loading...';
+  late String dokumen_pdf = 'Loading..';
 
   @override
   void initState() {
     super.initState();
     fetchAppointmentDetails();
+    if (statusId > 3) {
+      fetchMedicalRecord(widget.appointmentId);
+    }
   }
 
   Future<void> fetchAppointmentDetails() async {
@@ -134,34 +145,166 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
       }
     }
   }
-  Future<void> updateStatus() async {
-  int newStatusId = (statusId == 6) ? 1 : statusId + 1;
 
-  final url = Uri.parse('http://127.0.0.1:8000/api/book_appointments/${widget.appointmentId}');
-  final response = await http.put(
-    url,
-    headers: {"Content-Type": "application/json"},
-    body: json.encode({
-      "status_id": newStatusId,
-      "user_id": userId,  // Make sure these fields are available
-      "pasien_id": patientId,
-      "hospital_id": hospitalId,
-      "dokter_id": doctorId,
-      "jadwal_id": jadwalId,
-    }),
-  );
+  Future<void> fetchMedicalRecord(int appointmentId) async {
+    final response = await http.get(
+      Uri.parse(
+          'http://127.0.0.1:8000/api/medical_records/by_appointment/$appointmentId'),
+    );
 
-  if (response.statusCode == 200) {
-    setState(() {
-      statusId = newStatusId;
-    });
-    fetchAppointmentDetails();
-  } else {
-    print('Failed to update status. Status code: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    if (response.statusCode == 200) {
+      final medicalrecord = jsonDecode(response.body);
+      setState(() {
+        this.medicalId = medicalrecord['id_medical_record'];
+        this.bloodpressure = medicalrecord['bloodpressure'];
+        this.berat_badan = medicalrecord['berat_badan'];
+        this.tinggi_badan = medicalrecord['tinggi_badan'];
+        this.complain = medicalrecord['complain'];
+        this.dokumen_pdf = medicalrecord['dokumen_pdf'];
+        this.hasil_pemeriksaan = medicalrecord['hasil_pemeriksaan'];
+      });
+    } else {
+      throw Exception('Failed to load medical record');
+    }
   }
-}
 
+  Future<void> updateStatus() async {
+    // Periksa apakah statusId sudah 6
+    if (statusId == 6) {
+      print('Status is 6 and cannot be updated.');
+      return;
+    }
+    int newStatusId = (statusId == 6) ? 1 : statusId + 1;
+
+    final url = Uri.parse(
+        'http://127.0.0.1:8000/api/book_appointments/${widget.appointmentId}');
+    final response = await http.put(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: json.encode({
+        "status_id": newStatusId,
+        "user_id": userId, // Make sure these fields are available
+        "pasien_id": patientId,
+        "hospital_id": hospitalId,
+        "dokter_id": doctorId,
+        "jadwal_id": jadwalId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        statusId = newStatusId;
+      });
+      fetchAppointmentDetails();
+    } else {
+      print('Failed to update status. Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+  }
+
+  Future<void> handleStatusUpdate() async {
+    if (statusId == 6) {
+      print('Status is 6 and cannot be updated.');
+      return;
+    }
+    if (statusId == 1) {
+      await postTransaction();
+    } else if (statusId == 3) {
+      await postMedicalRecord();
+      await fetchMedicalRecord(widget.appointmentId);
+    } else if (statusId == 4) {
+      await putMedicalRecord();
+    }
+    await updateStatus();
+  }
+
+  Future<void> postTransaction() async {
+    final response = await http.post(
+      Uri.parse('http://127.0.0.1:8000/api/transaksis/'),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode({
+        "user_id": userId,
+        "pasien_id": patientId,
+        "appointment_id": widget.appointmentId,
+        "konsultasi_id": 0,
+        "status_id": statusId + 1,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      print('Transaction created successfully.');
+    } else {
+      print(
+          'Failed to create transaction. Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+  }
+
+  Future<void> postMedicalRecord() async {
+    final response = await http.post(
+      Uri.parse('http://127.0.0.1:8000/api/medical_records/'),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode({
+        "user_id": userId,
+        "pasien_id": patientId,
+        "appointment_id": widget.appointmentId,
+        "bloodpressure": "120/80",
+        "tinggi_badan": "170 cm",
+        "berat_badan": "70 kg",
+        "complain": "Headache",
+        "hasil_pemeriksaan": "",
+        "riwayat_medis": "",
+        "dokumen_pdf": ""
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      print('Medical record created successfully.');
+    } else {
+      print(
+          'Failed to create medical record. Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+  }
+
+  Future<void> putMedicalRecord() async {
+    await fetchMedicalRecord(widget.appointmentId); // Await the fetch operation
+    if (medicalId == null) {
+      print('Medical record ID not found');
+      return;
+    }
+
+    final random = Random();
+    final bloodPressure =
+        "${random.nextInt(40) + 90}/${random.nextInt(40) + 60}";
+    final height = "${random.nextInt(50) + 150}";
+    final weight = "${random.nextInt(50) + 50}";
+
+    final response = await http.put(
+      Uri.parse('http://127.0.0.1:8000/api/medical_records/$medicalId'),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode({
+        "user_id": userId,
+        "pasien_id": patientId,
+        "appointment_id": widget.appointmentId,
+        "bloodpressure": bloodPressure,
+        "tinggi_badan": height,
+        "berat_badan": weight,
+        "complain": "Headache",
+        "hasil_pemeriksaan": "Normal",
+        "riwayat_medis": "None",
+        "dokumen_pdf": "dokumen.pdf"
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print('Medical record updated successfully.');
+    } else {
+      print(
+          'Failed to update medical record. Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -174,10 +317,11 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
         children: [
           _buildDoctorInfo(),
           SizedBox(height: 20),
-          _buildPatientDetails(),
+          if (statusId != 4) _buildPatientDetails(),
           _buildAppointmentProcess(),
           _buildAppointmentDetail(),
-          if(statusId == 4) _buildPatientNurseDetails(),
+          if (statusId == 4) _buildPatientNurseDetails(),
+          if (statusId == 5) _buildPaymentDetails(),
           _buildCircleRow(statusId), // Change text as needed
         ],
       ),
@@ -324,9 +468,58 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
             ),
           ),
           SizedBox(height: 20),
-          _buildDetailRow('BP', "125/85 mm Hg"),
-          _buildDetailRow('Height', "173 cm"),
-          _buildDetailRow('Weight', "59 Kg"),
+          _buildDetailRow('Name', patientName, bold: true),
+          _buildDetailRow('DOB', patientDOB),
+          Divider(
+            color: Color.fromARGB(255, 0, 0,
+                0), // Warna divider, Anda bisa menyesuaikan sesuai keinginan
+            thickness: 1, // Ketebalan divider
+          ),
+          _buildDetailRow('BP', bloodpressure + " mm Hg"),
+          _buildDetailRow('Height', tinggi_badan),
+          _buildDetailRow('Weight', berat_badan),
+          SizedBox(height: 15),
+          Text(
+            'Chief Complaint :',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+          // Divider(),
+          // SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(complain, style: GoogleFonts.poppins()),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentDetails() {
+    return Container(
+      padding: EdgeInsets.all(10.0),
+      margin: EdgeInsets.only(bottom: 16.0),
+      decoration: _boxDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Text(
+              'Payment Details',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+            ),
+          ),
+          SizedBox(height: 20),
+          _buildDetailRow('Consultation fee', 'Rp 333.333'),
+          _buildDetailRow('Laboratory Tests', 'Rp 333.333'),
+          _buildDetailRow('Medications', 'Rp 333.333'),
+          Divider(
+            color: Color.fromARGB(255, 0, 0,
+                0), // Warna divider, Anda bisa menyesuaikan sesuai keinginan
+            thickness: 1, // Ketebalan divider
+          ),
+          _buildDetailRow('Total', 'Rp 999.999'),
         ],
       ),
     );
@@ -427,7 +620,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
   }
 
   Widget _buildAppointmentDetail() {
-  String formattedDate = DateFormat('dd MMMM yyyy').format(tanggal);
+    String formattedDate = DateFormat('dd MMMM yyyy').format(tanggal);
     return Container(
       padding: EdgeInsets.all(10.0),
       margin: EdgeInsets.only(bottom: 16.0),
@@ -522,24 +715,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                 ),
                 SizedBox(height: 10),
                 Text(
-                  'Cardiology appointment on Thursday, 2 September 2024 at Mereun Hospital Bandung.',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
-                ),
-                Text(
-                  'Scheduled for 18:00',
-                  style: GoogleFonts.poppins(),
-                ),
-                SizedBox(height: 20),
-                Center(
-                  child: Image.network(
-                    'https://img.icons8.com/metro/100/qr-code.png',
-                    width: 100,
-                    height: 100,
-                  ),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  'Upon arrival at the hospital, use the provided QR code to confirm your appointment. Scanning the code will automatically place you in the queue and notify you when it\'s your turn.',
+                  'Appointment finished. Please complete your payment by pressing the following button.',
                   style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
                 ),
               ],
@@ -592,19 +768,20 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
     );
   }
 
-  Widget _buildDetailRow(String title, String value) {
+  Widget _buildDetailRow(String label, String value, {bool bold = false}) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            title,
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+            label,
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
           ),
           Text(
             value,
-            style: GoogleFonts.poppins(),
+            style: GoogleFonts.poppins(
+                fontWeight: bold ? FontWeight.bold : FontWeight.normal),
           ),
         ],
       ),
@@ -671,69 +848,94 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
   }
 
   Widget _buildCircleRow(int statusId) {
-  Color circleColor;
+    Color circleColor;
 
-  if (statusId == 1) {
-    circleColor = Colors.yellow;
-  } else if (statusId == 6) {
-    circleColor = Colors.red;
-  } else {
-    circleColor = Colors.green;
-  }
+    if (statusId == 1) {
+      circleColor = Colors.yellow;
+    } else if (statusId == 6) {
+      circleColor = Colors.red;
+    } else {
+      circleColor = Colors.green;
+    }
 
-  return InkWell(
-    onTap: () {
-      print('Row tapped! Status ID Before: $statusId');
-      updateStatus();
-      print('Row tapped! Status ID After: $statusId');
-    },
-    child: Row(
-      children: [
-        Container(
-          width: 20.0,
-          height: 20.0,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: circleColor,
-          ),
-        ),
-        SizedBox(width: 10),
-        Text(
-          statusId == 1
-              ? 'Scheduled'
-              : statusId == 6
-                  ? 'Finished'
-                  : 'On Going',
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.normal,
-          ),
-        ),
-        if (statusId == 1) Spacer(),
-        if (statusId == 1)
-          ElevatedButton(
-            onPressed: () {
-              // Logic to cancel appointment
-              print('Cancel Appointment button pressed!');
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color.fromRGBO(255, 0, 0, 1),
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              minimumSize: Size(100, 30),
+    return InkWell(
+      onTap: () {
+        print('Row tapped! Status ID Before: $statusId');
+        handleStatusUpdate();
+        print('Row tapped! Status ID After: $statusId');
+      },
+      child: Row(
+        children: [
+          Container(
+            width: 20.0,
+            height: 20.0,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: circleColor,
             ),
-            child: Text(
-              'Cancel Appointment',
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+          ),
+          SizedBox(width: 10),
+          Text(
+            statusId == 1
+                ? 'Scheduled'
+                : statusId == 6
+                    ? 'Finished'
+                    : 'On Going',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+          if (statusId == 1 || statusId == 5) Spacer(),
+          if (statusId == 1)
+            ElevatedButton(
+              onPressed: () {
+                // Logic to cancel appointment
+                print('Cancel Appointment button pressed!');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color.fromRGBO(255, 0, 0, 1),
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                minimumSize: Size(100, 30),
+              ),
+              child: Text(
+                'Cancel Appointment',
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
-          ),
-      ],
-    ),
-  );
-}
+          if (statusId == 5)
+            ElevatedButton(
+              onPressed: () {
+                // Mengarahkan ke halaman paymentMethods
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          PaymentMethods(appointmentId: widget.appointmentId),
+                    ));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color.fromRGBO(36, 188, 52, 1),
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                minimumSize: Size(100, 30),
+              ),
+              child: Text(
+                'Complete Payment',
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }
 
 class DashedLineWidget extends StatelessWidget {

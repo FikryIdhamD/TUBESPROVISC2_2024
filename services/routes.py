@@ -18,7 +18,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 app = APIRouter()
 
 
-
 # Dependency to get DB session
 def get_db():
     db = SessionLocal()
@@ -666,3 +665,21 @@ def import_statuses(db: Session = Depends(get_db)):
     for status in statuses_list:
         create_status(status, db)
     return {"message": "Statuses imported successfully"}
+
+
+# Endpoint to retrieve medical record by appointment ID
+@app.get("/medical_records/by_appointment/{appointment_id}", response_model=MedicalRecordRead)
+def get_medical_record_by_appointment_id(appointment_id: int, db: Session = Depends(get_db)):
+    # Query to find the BookAppointment record with the given appointment_id
+    appointment = db.query(BookAppointment).filter(BookAppointment.id == appointment_id).first()
+    
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    
+    # Query to find the MedicalRecord associated with the appointment
+    medical_record = db.query(MedicalRecord).filter(MedicalRecord.appointment_id == appointment_id).first()
+    
+    if not medical_record:
+        raise HTTPException(status_code=404, detail="Medical record not found")
+    
+    return medical_record
