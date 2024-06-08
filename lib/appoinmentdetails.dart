@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'payment.dart';
 import 'package:intl/intl.dart';
+import 'main.dart'; // Pastikan Anda mengimpor main.dart
 
 class AppointmentDetailPage extends StatefulWidget {
   final int appointmentId;
@@ -302,6 +303,40 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
     } else {
       print(
           'Failed to update medical record. Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+  }
+
+  Future<void> deleteAppointment() async {
+    final url = Uri.parse(
+        'http://127.0.0.1:8000/api/book_appointments/${widget.appointmentId}');
+
+    final response = await http.delete(
+      url,
+      headers: {"Content-Type": "application/json"},
+    );
+
+    if (response.statusCode == 200) {
+      print('Appointment deleted successfully.');
+      Future.delayed(Duration(seconds: 3), () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Appointment canceled Succesfully'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        Navigator.of(context).pop();
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Home(),
+          ),
+          (Route<dynamic> route) => false,
+        );
+      });
+    } else {
+      print(
+          'Failed to delete appointment. Status code: ${response.statusCode}');
       print('Response body: ${response.body}');
     }
   }
@@ -890,8 +925,31 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
           if (statusId == 1)
             ElevatedButton(
               onPressed: () {
-                // Logic to cancel appointment
-                print('Cancel Appointment button pressed!');
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Confirm Cancellation'),
+                      content: Text(
+                          'Are you sure you want to cancel this appointment?'),
+                      actions: <Widget>[
+                        TextButton(
+                          child: Text('No'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        TextButton(
+                          child: Text('Yes'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            deleteAppointment();
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color.fromRGBO(255, 0, 0, 1),
