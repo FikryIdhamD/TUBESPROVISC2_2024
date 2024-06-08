@@ -5,6 +5,33 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
 class RecordDetailPage extends StatefulWidget {
+  final String date;
+  final String patient;
+  final String doctor;
+  final String spesialis;
+  final String contactPasien;
+  final String bloodpressure;
+  final String weight;
+  final String height;
+  final String complain;
+  final String hasilPemeriksaan;
+  final String dokumenPdf;
+
+  const RecordDetailPage({
+    Key? key,
+    required this.date,
+    required this.patient,
+    required this.doctor,
+    required this.spesialis,
+    required this.contactPasien,
+    required this.bloodpressure,
+    required this.weight,
+    required this.height,
+    required this.complain,
+    required this.hasilPemeriksaan,
+    required this.dokumenPdf,
+  }) : super(key: key);
+
   @override
   _RecordDetailPageState createState() => _RecordDetailPageState();
 }
@@ -14,25 +41,27 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
   bool _showClinicasses = false;
 
   Future<void> _downloadPdf() async {
-    final url =
-        'https://drive.google.com/uc?id=1nvB-CeSX4umYS6qvB6pHcw5mzbLnLIcF';
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(widget.dokumenPdf));
       if (response.statusCode == 200) {
         final bytes = response.bodyBytes;
         final dir = await getApplicationDocumentsDirectory();
         final path = '${dir.path}/medical_record.pdf';
-        final File file = File(path);
+        final file = File(path);
         await file.writeAsBytes(bytes);
         // Jika perlu, tambahkan logika tampilkan pesan notifikasi atau aksi lain setelah selesai unduh.
-        print('File berhasil diunduh');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('File berhasil diunduh ke $path')),
+        );
       } else {
         throw Exception(
             'Gagal mengunduh file, kode status: ${response.statusCode}');
       }
     } catch (e) {
       print('Error: $e');
-      // Tambahkan penanganan kesalahan di sini, seperti menampilkan pesan kesalahan kepada pengguna.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mengunduh file: $e')),
+      );
     }
   }
 
@@ -73,7 +102,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
               ),
             ),
             leading: IconButton(
-              icon: Icon(Icons.close),
+              icon: Icon(Icons.close, color: Colors.black),
               onPressed: () {
                 Navigator.pop(context);
               },
@@ -117,111 +146,107 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
                   ],
                 ),
                 Divider(),
-                SizedBox(height: 15),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Name', style: GoogleFonts.poppins()),
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          'Marvel Ravindra Diop',
-                          style:
-                              GoogleFonts.poppins(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('DOB ', style: GoogleFonts.poppins()),
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          '20 December 2003',
-                          style: GoogleFonts.poppins(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Contact ', style: GoogleFonts.poppins()),
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          '+62-8123456789',
-                          style: GoogleFonts.poppins(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (_showPatientInfo)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                if (_showPatientInfo) ...[
+                  SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      SizedBox(height: 20),
-                      Text(
-                        'Vital Signs:',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-                      ),
-                      Divider(),
-                      SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('BP ', style: GoogleFonts.poppins()),
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: Text(
-                                '125/85 mm Hg',
-                                style: GoogleFonts.poppins(),
-                              ),
-                            ),
+                      Text('Name', style: GoogleFonts.poppins()),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            widget.patient,
+                            style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold),
                           ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Height ', style: GoogleFonts.poppins()),
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: Text(
-                                '173 cm',
-                                style: GoogleFonts.poppins(),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Weight ', style: GoogleFonts.poppins()),
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: Text(
-                                '59 kg',
-                                style: GoogleFonts.poppins(),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('DOB', style: GoogleFonts.poppins()),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            widget.date,
+                            style: GoogleFonts.poppins(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Contact', style: GoogleFonts.poppins()),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            widget.contactPasien,
+                            style: GoogleFonts.poppins(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    'Vital Signs:',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                  ),
+                  Divider(),
+                  SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('BP', style: GoogleFonts.poppins()),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            widget.bloodpressure,
+                            style: GoogleFonts.poppins(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Height', style: GoogleFonts.poppins()),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            widget.height,
+                            style: GoogleFonts.poppins(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Weight', style: GoogleFonts.poppins()),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            widget.weight,
+                            style: GoogleFonts.poppins(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -259,84 +284,75 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
                   ],
                 ),
                 Divider(),
-                SizedBox(height: 15),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Date of Consultation ', style: GoogleFonts.poppins()),
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          '20 May 2023',
-                          style: GoogleFonts.poppins(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Cardiologist ', style: GoogleFonts.poppins()),
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          'Dr. Rasmy Humm',
-                          style: GoogleFonts.poppins(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (_showClinicasses)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                if (_showClinicasses) ...[
+                  SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      SizedBox(height: 15),
-                      Text(
-                        'Chief Complaint :',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-                      ),
-                      // Divider(),
-                      // SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('[Symptoms/Concerns] ',
-                              style: GoogleFonts.poppins()),
-                        ],
-                      ),
-                      SizedBox(height: 15),
-                      Text(
-                        'Physical Examination:',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-                      ),
-                      // Divider(),
-                      // SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('[Findings]', style: GoogleFonts.poppins()),
-                        ],
-                      ),
-                      SizedBox(height: 15),
-                      Text(
-                        'Medical History: ',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-                      ),
-                      // Divider(),
-                      // SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('[Brief Overview]',
-                              style: GoogleFonts.poppins()),
-                        ],
+                      Text('Date of Consultation',
+                          style: GoogleFonts.poppins()),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            widget.date,
+                            style: GoogleFonts.poppins(),
+                          ),
+                        ),
                       ),
                     ],
                   ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Doctor', style: GoogleFonts.poppins()),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            widget.doctor,
+                            style: GoogleFonts.poppins(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Specialist', style: GoogleFonts.poppins()),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            widget.spesialis,
+                            style: GoogleFonts.poppins(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 15),
+                  Text(
+                    'Chief Complaint:',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                  ),
+                  Divider(),
+                  Text(
+                    widget.complain,
+                    style: GoogleFonts.poppins(),
+                  ),
+                  SizedBox(height: 15),
+                  Text(
+                    'Physical Examination:',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                  ),
+                  Divider(),
+                  Text(
+                    widget.hasilPemeriksaan,
+                    style: GoogleFonts.poppins(),
+                  ),
+                ],
               ],
             ),
           ),
