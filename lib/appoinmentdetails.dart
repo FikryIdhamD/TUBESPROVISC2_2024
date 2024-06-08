@@ -171,8 +171,8 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
 
   Future<void> updateStatus() async {
     // Periksa apakah statusId sudah 6
-    if (statusId == 6) {
-      print('Status is 6 and cannot be updated.');
+    if (statusId >= 5) {
+      print('Status is more or equelas 5 and cannot be updated.');
       return;
     }
     int newStatusId = (statusId == 6) ? 1 : statusId + 1;
@@ -585,11 +585,10 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                 _buildProcessCircle('Payment', false),
                 _buildDashedLine(false),
                 _buildProcessCircle('Finished', false),
-                _buildDashedLine(false),
               ],
               if (statusId == 2) ...[
                 _buildProcessCircle('Registration', true),
-                _buildDashedLine(true),
+                _buildDashedLine(false),
                 _buildProcessCircle('Nurse Station', false),
                 _buildDashedLine(false),
                 _buildProcessCircle('See Doctor', false),
@@ -597,55 +596,50 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                 _buildProcessCircle('Payment', false),
                 _buildDashedLine(false),
                 _buildProcessCircle('Finished', false),
-                _buildDashedLine(false),
               ],
               if (statusId == 3) ...[
-                _buildProcessCircle('Registration', false),
-                _buildDashedLine(false),
-                _buildProcessCircle('Nurse Station', true),
+                _buildProcessCircle('Registration', true),
                 _buildDashedLine(true),
+                _buildProcessCircle('Nurse Station', true),
+                _buildDashedLine(false),
                 _buildProcessCircle('See Doctor', false),
                 _buildDashedLine(false),
                 _buildProcessCircle('Payment', false),
                 _buildDashedLine(false),
                 _buildProcessCircle('Finished', false),
-                _buildDashedLine(false),
               ],
               if (statusId == 4) ...[
-                _buildProcessCircle('Registration', false),
-                _buildDashedLine(false),
-                _buildProcessCircle('Nurse Station', false),
-                _buildDashedLine(false),
-                _buildProcessCircle('See Doctor', true),
+                _buildProcessCircle('Registration', true),
                 _buildDashedLine(true),
+                _buildProcessCircle('Nurse Station', true),
+                _buildDashedLine(true),
+                _buildProcessCircle('See Doctor', true),
+                _buildDashedLine(false),
                 _buildProcessCircle('Payment', false),
                 _buildDashedLine(false),
                 _buildProcessCircle('Finished', false),
-                _buildDashedLine(false),
               ],
               if (statusId == 5) ...[
-                _buildProcessCircle('Registration', false),
-                _buildDashedLine(false),
-                _buildProcessCircle('Nurse Station', false),
-                _buildDashedLine(false),
-                _buildProcessCircle('See Doctor', false),
-                _buildDashedLine(false),
-                _buildProcessCircle('Payment', true),
+                _buildProcessCircle('Registration', true),
                 _buildDashedLine(true),
-                _buildProcessCircle('Finished', false),
+                _buildProcessCircle('Nurse Station', true),
+                _buildDashedLine(true),
+                _buildProcessCircle('See Doctor', true),
+                _buildDashedLine(true),
+                _buildProcessCircle('Payment', true),
                 _buildDashedLine(false),
+                _buildProcessCircle('Finished', false),
               ],
               if (statusId == 6) ...[
-                _buildProcessCircle('Registration', false),
-                _buildDashedLine(false),
-                _buildProcessCircle('Nurse Station', false),
-                _buildDashedLine(false),
-                _buildProcessCircle('See Doctor', false),
-                _buildDashedLine(false),
-                _buildProcessCircle('Payment', false),
-                _buildDashedLine(false),
-                _buildProcessCircle('Finished', true),
+                _buildProcessCircle('Registration', true),
                 _buildDashedLine(true),
+                _buildProcessCircle('Nurse Station', true),
+                _buildDashedLine(true),
+                _buildProcessCircle('See Doctor', true),
+                _buildDashedLine(true),
+                _buildProcessCircle('Payment', true),
+                _buildDashedLine(true),
+                _buildProcessCircle('Finished', true)
               ],
             ],
           )
