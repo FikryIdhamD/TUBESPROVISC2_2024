@@ -58,11 +58,12 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
 
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
-
+      
       // Assuming your API response is a list of appointments in JSON format
       List<dynamic> appointmentsData = jsonData as List<dynamic>;
 
       for (var appointmentData in appointmentsData) {
+        print('Appointment data2: $appointmentData');
         int id = appointmentData['id'];
         int iduser = appointmentData['user_id'];
         int date = appointmentData['jadwal_id'];
@@ -88,11 +89,7 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
           status: status,
           onPressed: () {},
         );
-          print('iiiiid: $id');
-        print('iduser: $iduser');
-        print('date: $date');
-        print('title: $title');
-        print('status: $status');
+
         if (status == 6 && iduser == userId) {
           historyList.add(item);
         } else if (iduser == userId) {
@@ -314,11 +311,76 @@ Future<String> fetchPatientName(int pasienId) async {
   }
 }
 
+Future<List<List<TransactionItem>>> fetchTransactions(int userId) async {
+  List<TransactionItem> historyList2 = [];
+  List<TransactionItem> unpaidList = [];
+  try {
+    final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/transaksis/'));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonData = json.decode(response.body);
+
+      for (var recordData in jsonData) {
+        if (recordData['user_id'] == userId) {
+          String title = 'Loading...';
+          String status= 'Loading...';
+
+          if(recordData['konsultasi_id'] == 0){
+            title = 'Doctor Appointment';
+          }else if(recordData['konsultasi_id'] != 0){
+            title = 'Online Consultation';
+          }
+          if(recordData['status_id'] == 2){
+            status = 'Payment Completed';
+          }else{
+            status = 'Payment Incompleted';
+          }
+          // Fetch appointment details
+          final appointmentResponse = await http.get(Uri.parse('http://127.0.0.1:8000/api/book_appointments/${recordData['appointment_id']}'));
+          if (appointmentResponse.statusCode == 200) {
+            final appointmentData = json.decode(appointmentResponse.body);
+            final appointmentDateTime = DateTime.parse(appointmentData['tanggal']); // Assuming the date field exists in the appointment data
+            final formattedDate = '${appointmentDateTime.day}-${appointmentDateTime.month}-${appointmentDateTime.year}'; // Format: dd-MM-yyyy
+
+            TransactionItem transaksi = TransactionItem(
+              date: formattedDate,
+              title: title,
+              status: status,
+              onPressed: () {},
+            );
+
+            if(recordData['status_id'] == 2){
+              historyList2.add(transaksi);
+            }else{
+              unpaidList.add(transaksi);
+            }
+          } else {
+            print('Failed to load appointment details. Status code: ${appointmentResponse.statusCode}');
+          }
+        }
+      }
+
+      print('Transactions for userId $userId: $historyList2');
+      print('Transactions for userId $userId: $unpaidList');
+
+      return [historyList2, unpaidList];
+    } else {
+      print('Failed to load Transactions. Status code: ${response.statusCode}');
+      return [];
+    }
+  } catch (e) {
+    print('Error fetching Transactions: $e');
+    return [[], []];
+  }
+}
+
 class _HomeState extends State<Home> {
   List<AppointmentItem> historyList = []; // Define class-level variables
   List<AppointmentItem> scheduledList = [];
   List<RecordsItem> OthersList = [];
   List<RecordsItem> MyselfList = [];
+  List<TransactionItem> historyList2 = [];
+  List<TransactionItem> unpaidList = [];
 
   @override
   void initState() {
@@ -335,6 +397,12 @@ class _HomeState extends State<Home> {
       setState(() {
         OthersList = lists[1]; // Assign values to class-level variables
         MyselfList = lists[0];
+      });
+    });
+    fetchTransactions(auth.userId).then((lists) {
+      setState(() {
+        historyList2 = lists[0]; // Assign values to class-level variables
+        unpaidList = lists[1];
       });
     });
   }
@@ -354,36 +422,6 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<Auth>(context);
-
-    List<TransactionItem> historyList2 = [
-      TransactionItem(
-        date: '20 Jan 2022, 14:00',
-        title: 'Online Consultation (chat)',
-        status: 'Payment Completed',
-        onPressed: () {},
-      ),
-      TransactionItem(
-        date: '22 Jan 2022, 09:30',
-        title: 'Online Consultation (call)',
-        status: 'Payment Completed',
-        onPressed: () {},
-      ),
-    ];
-
-    List<TransactionItem> unpaidList = [
-      TransactionItem(
-        date: '20 Jan 2024, 14:00',
-        title: 'Online Consultation (chat)',
-        status: 'Payment Incompleted',
-        onPressed: () {},
-      ),
-      TransactionItem(
-        date: '22 Jan 2024, 09:30',
-        title: 'Online Consultation (call)',
-        status: 'Payment Incompleted',
-        onPressed: () {},
-      ),
-    ];
 
     List<Widget> _widgetOptions = <Widget>[
       // Widget untuk halaman Home

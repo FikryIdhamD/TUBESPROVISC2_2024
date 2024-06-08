@@ -177,6 +177,7 @@ class AppointmentItem extends StatefulWidget {
   _AppointmentItemState createState() => _AppointmentItemState();
 }
 
+
 class _AppointmentItemState extends State<AppointmentItem> {
   String? hari;
   String? jam;
@@ -191,21 +192,37 @@ class _AppointmentItemState extends State<AppointmentItem> {
   Future<void> fetchData() async {
     print('Widget status: ${widget.status}');
     print('Widget date: ${widget.date}');
-    final statusResponse =
-        await http.get(Uri.parse('http://127.0.0.1:8000/api/statuses/${widget.status}'));
-    final jadwalResponse =
-        await http.get(Uri.parse('http://127.0.0.1:8000/api/jadwals/${widget.date}'));
 
-    if (statusResponse.statusCode == 200 && jadwalResponse.statusCode == 200) {
-      setState(() {
-        hari = jsonDecode(jadwalResponse.body)['hari'];
-        jam = jsonDecode(jadwalResponse.body)['jam'];
-        namaStatus = jsonDecode(statusResponse.body)['nama_status'];
-      });
+    final appointmentResponse = 
+        await http.get(Uri.parse('http://127.0.0.1:8000/api/book_appointments/${widget.id}'));
+
+    if (appointmentResponse.statusCode == 200) {
+        final appointmentData = jsonDecode(appointmentResponse.body);
+        print('Appointment data: $appointmentData');
+
+        final statusId = appointmentData['status_id'];
+        final jadwalId = appointmentData['jadwal_id'];
+
+        final statusResponse =
+            await http.get(Uri.parse('http://127.0.0.1:8000/api/statuses/$statusId'));
+        final jadwalResponse =
+            await http.get(Uri.parse('http://127.0.0.1:8000/api/jadwals/$jadwalId'));
+
+        if (statusResponse.statusCode == 200 && jadwalResponse.statusCode == 200) {
+            setState(() {
+                hari = jsonDecode(jadwalResponse.body)['hari'];
+                jam = jsonDecode(jadwalResponse.body)['jam'];
+                namaStatus = jsonDecode(statusResponse.body)['nama_status'];
+            });
+        } else {
+            throw Exception('Failed to load status or jadwal data');
+        }
     } else {
-      throw Exception('Failed to load data');
+        throw Exception('Failed to load appointment data');
     }
-  }
+}
+
+
 
   @override
   Widget build(BuildContext context) {

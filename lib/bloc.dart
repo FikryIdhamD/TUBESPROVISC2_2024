@@ -4,22 +4,6 @@ import 'dart:convert';
 // import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 
-class MedicalRecord {
-  final String date;
-  final String patient;
-  final String doctor;
-  final String spesialis;
-  final VoidCallback onPressed;
-
-  const MedicalRecord({
-    required this.date,
-    required this.patient,
-    required this.doctor,
-    required this.spesialis,
-    required this.onPressed,
-  });
-}
-
 // Article class definition
 class Artikel {
   final int idArtikel;
