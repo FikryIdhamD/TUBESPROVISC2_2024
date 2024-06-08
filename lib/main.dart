@@ -74,6 +74,12 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
           title = 'Scheduled Appointment';
         }
 
+        print('id: $id');
+        print('iduser: $iduser');
+        print('date: $date');
+        print('title: $title');
+        print('status: $status');
+
         AppointmentItem item = AppointmentItem(
           id: id,
           iduser: iduser,
@@ -82,7 +88,11 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
           status: status,
           onPressed: () {},
         );
-
+          print('iiiiid: $id');
+        print('iduser: $iduser');
+        print('date: $date');
+        print('title: $title');
+        print('status: $status');
         if (status == 6 && iduser == userId) {
           historyList.add(item);
         } else if (iduser == userId) {
@@ -108,9 +118,207 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
   }
 }
 
+Future<List<List<RecordsItem>>> fetchMedicalRecords(int IdUser) async {
+  List<RecordsItem> MyselfList = [];
+  List<RecordsItem> OthersList = [];
+  try {
+    final response =
+        await http.get(Uri.parse('http://127.0.0.1:8000/api/medical_records/'));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonData = json.decode(response.body);
+      int minPasienId = 1000;
+      for (var recordData in jsonData) {
+        if (recordData['user_id'] == IdUser) {
+          if (minPasienId > recordData['pasien_id']) {
+            minPasienId = recordData['pasien_id'];
+          }
+        }
+      }
+
+      // Fetching appointments data
+      final appointmentsResponse = await http
+          .get(Uri.parse('http://127.0.0.1:8000/api/book_appointments/'));
+      if (appointmentsResponse.statusCode == 200) {
+        final List<dynamic> appointmentsJsonData =
+            json.decode(appointmentsResponse.body);
+
+        for (var recordData in jsonData) {
+          if (recordData['user_id'] == IdUser) {
+            String namaPasien = await fetchPatientName(recordData['pasien_id']);
+
+            // Finding the appointment data corresponding to the medical record
+            var appointmentData = appointmentsJsonData.firstWhere(
+                (appointment) =>
+                    appointment['id'] == recordData['appointment_id'],
+                orElse: () => null);
+            if (appointmentData != null) {
+              String dokterName;
+              int dokterSpecialityId;
+              String specialityName;
+              String jadwalJam;
+
+              // Fetching doctor data
+              final doctorResponse = await http
+                  .get(Uri.parse('http://127.0.0.1:8000/api/dokters/'));
+              if (doctorResponse.statusCode == 200) {
+                final List<dynamic> doctorJsonData =
+                    json.decode(doctorResponse.body);
+
+                // Finding the doctor based on dokter_id from appointmentData
+                var doctorData = doctorJsonData.firstWhere(
+                    (doctor) =>
+                        doctor['id_dokter'] == appointmentData['dokter_id'],
+                    orElse: () => null);
+                if (doctorData != null) {
+                  dokterName = doctorData['nama_dokter'];
+                  dokterSpecialityId = doctorData['speciality_id'];
+                  // Fetching speciality data
+                  final specialityResponse = await http
+                      .get(Uri.parse('http://127.0.0.1:8000/api/specialitys/'));
+                  if (specialityResponse.statusCode == 200) {
+                    final List<dynamic> specialityJsonData =
+                        json.decode(specialityResponse.body);
+
+                    // Finding the speciality based on dokterSpecialityId
+                    var specialityData = specialityJsonData.firstWhere(
+                        (speciality) =>
+                            speciality['id_speciality'] == dokterSpecialityId,
+                        orElse: () => null);
+                    if (specialityData != null) {
+                      specialityName = specialityData['nama_speciality'];
+                    } else {
+                      print(
+                          'Speciality not found for dokterSpecialityId: $dokterSpecialityId');
+                      specialityName = 'Unknown';
+                    }
+                  } else {
+                    print(
+                        'Failed to load speciality data. Status code: ${specialityResponse.statusCode}');
+                    specialityName = 'Unknown';
+                  }
+                } else {
+                  print(
+                      'Doctor not found for dokter_id: ${appointmentData['dokter_id']}');
+                  continue; // Skip this record if doctor not found
+                }
+
+                // Fetching schedule data
+                final scheduleResponse = await http
+                    .get(Uri.parse('http://127.0.0.1:8000/api/jadwals/'));
+                if (scheduleResponse.statusCode == 200) {
+                  final List<dynamic> scheduleJsonData =
+                      json.decode(scheduleResponse.body);
+
+                  // Finding the schedule based on jadwalId from appointmentData
+                  var scheduleData = scheduleJsonData.firstWhere(
+                      (schedule) =>
+                          schedule['id_jadwal'] == appointmentData['jadwal_id'],
+                      orElse: () => null);
+                  if (scheduleData != null) {
+                    jadwalJam = scheduleData['jam'];
+                  } else {
+                    print(
+                        'Schedule not found for jadwalId: ${appointmentData['jadwal_id']}');
+                    jadwalJam = 'Unknown';
+                  }
+                } else {
+                  print(
+                      'Failed to load schedule data. Status code: ${scheduleResponse.statusCode}');
+                  jadwalJam = 'Unknown';
+                }
+
+                String dateTimeString =
+                    DateTime.parse(appointmentData['tanggal'])
+                        .toString(); // Konversi DateTime menjadi string
+                String dateOnly = dateTimeString
+                    .split(" ")[0]; // Mengambil bagian tanggal saja
+
+                String dateAndTime =
+                    '$dateOnly, $jadwalJam'; // Menggabungkan tanggal dan jam
+
+                RecordsItem medicalRecord = RecordsItem(
+                  date: dateAndTime,
+                  patient: namaPasien,
+                  doctor: dokterName,
+                  spesialis: specialityName,
+                  onPressed: () {},
+                );
+
+                if (recordData['pasien_id'] == minPasienId &&
+                    recordData['user_id'] == IdUser) {
+                  MyselfList.add(medicalRecord);
+                } else if (recordData['user_id'] == IdUser) {
+                  OthersList.add(medicalRecord);
+                }
+              } else {
+                print(
+                    'Failed to load doctor data. Status code: ${doctorResponse.statusCode}');
+              }
+            }
+          }
+        }
+      } else {
+        print(
+            'Failed to load appointments. Status code: ${appointmentsResponse.statusCode}');
+        return [];
+      }
+
+      print('Medical Records for userId $IdUser: $MyselfList');
+      print('Medical Records for userId $IdUser: $OthersList');
+
+      return [MyselfList, OthersList];
+    } else {
+      print(
+          'Failed to load medical records. Status code: ${response.statusCode}');
+      return [[], []];
+    }
+  } catch (e) {
+    print('Error fetching medical records: $e');
+    return [[], []];
+  }
+}
+
+Future<String> fetchPatientName(int pasienId) async {
+  try {
+    final response =
+        await http.get(Uri.parse('http://127.0.0.1:8000/api/pasiens/'));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> pasiens = json.decode(response.body);
+
+      // Cari pasien dengan pasienId yang sesuai
+      final pasien = pasiens.firstWhere(
+        (p) => p['id_pasien'] == pasienId,
+        orElse: () => null,
+      );
+
+      if (pasien != null) {
+        // Ambil nama pasien dari data JSON
+        String namaPasien = pasien['nama_pasien'];
+
+        print('Patient name for pasienId $pasienId: $namaPasien');
+
+        return namaPasien;
+      } else {
+        print('Patient with pasienId $pasienId not found');
+        return 'None';
+      }
+    } else {
+      print('Failed to load patient data. Status code: ${response.statusCode}');
+      return 'None';
+    }
+  } catch (e) {
+    print('Error fetching patient data: $e');
+    return 'None';
+  }
+}
+
 class _HomeState extends State<Home> {
   List<AppointmentItem> historyList = []; // Define class-level variables
   List<AppointmentItem> scheduledList = [];
+  List<RecordsItem> OthersList = [];
+  List<RecordsItem> MyselfList = [];
 
   @override
   void initState() {
@@ -121,6 +329,12 @@ class _HomeState extends State<Home> {
       setState(() {
         historyList = lists[0]; // Assign values to class-level variables
         scheduledList = lists[1];
+      });
+    });
+    fetchMedicalRecords(auth.userId).then((lists) {
+      setState(() {
+        OthersList = lists[1]; // Assign values to class-level variables
+        MyselfList = lists[0];
       });
     });
   }
@@ -140,47 +354,6 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<Auth>(context);
-
-    List<RecordsItem> OthersList = [
-      RecordsItem(
-        date: '15 Jan 2022, 15:30',
-        patient: 'Elizabeth Rose Smith',
-        doctor: 'Dr. Emily Johnson',
-        spesialis: 'Cardiology',
-        onPressed: () {},
-      ),
-      RecordsItem(
-        date: '16 Jan 2022, 10:00',
-        patient: 'Adam Christopher Brown',
-        doctor: 'Dr. Michael Brown',
-        spesialis: 'Dermatology',
-        onPressed: () {},
-      ),
-      RecordsItem(
-        date: '17 Jan 2022, 11:30',
-        patient: 'Robert William Johnson',
-        doctor: 'Dr. Sarah Clark',
-        spesialis: 'Orthopedics',
-        onPressed: () {},
-      ),
-    ];
-
-    List<RecordsItem> MyselfList = [
-      RecordsItem(
-        date: '20 Jan 2022, 14:00',
-        patient: 'Mary Anne White',
-        doctor: 'Dr. David Lee',
-        spesialis: 'Pediatrics',
-        onPressed: () {},
-      ),
-      RecordsItem(
-        date: '22 Jan 2022, 09:30',
-        patient: 'Mary Anne White',
-        doctor: 'Dr. Jennifer Taylor',
-        spesialis: 'Oncology',
-        onPressed: () {},
-      ),
-    ];
 
     List<TransactionItem> historyList2 = [
       TransactionItem(

@@ -189,6 +189,8 @@ class _AppointmentItemState extends State<AppointmentItem> {
   }
 
   Future<void> fetchData() async {
+    print('Widget status: ${widget.status}');
+    print('Widget date: ${widget.date}');
     final statusResponse =
         await http.get(Uri.parse('http://127.0.0.1:8000/api/statuses/${widget.status}'));
     final jadwalResponse =
