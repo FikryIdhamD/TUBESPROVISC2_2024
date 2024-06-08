@@ -157,19 +157,19 @@ class Appointments extends StatelessWidget {
 
 class AppointmentItem extends StatefulWidget {
   final int id; // Appointment ID
-  final int iduser;
-  final int date;
   final String title;
-  final int status;
+  final String hari;
+  final String jam;
+  final String namaStatus;
   final Function onPressed;
 
   AppointmentItem({
     Key? key,
     required this.id,
-    required this.iduser,
-    required this.date,
     required this.title,
-    required this.status,
+    required this.hari,
+    required this.jam,
+    required this.namaStatus,
     required this.onPressed,
   }) : super(key: key);
 
@@ -179,51 +179,6 @@ class AppointmentItem extends StatefulWidget {
 
 
 class _AppointmentItemState extends State<AppointmentItem> {
-  String? hari;
-  String? jam;
-  String? namaStatus;
-
-  @override
-  void initState() {
-    super.initState();
-    fetchData();
-  }
-
-  Future<void> fetchData() async {
-    print('Widget status: ${widget.status}');
-    print('Widget date: ${widget.date}');
-
-    final appointmentResponse = 
-        await http.get(Uri.parse('http://127.0.0.1:8000/api/book_appointments/${widget.id}'));
-
-    if (appointmentResponse.statusCode == 200) {
-        final appointmentData = jsonDecode(appointmentResponse.body);
-        print('Appointment data: $appointmentData');
-
-        final statusId = appointmentData['status_id'];
-        final jadwalId = appointmentData['jadwal_id'];
-
-        final statusResponse =
-            await http.get(Uri.parse('http://127.0.0.1:8000/api/statuses/$statusId'));
-        final jadwalResponse =
-            await http.get(Uri.parse('http://127.0.0.1:8000/api/jadwals/$jadwalId'));
-
-        if (statusResponse.statusCode == 200 && jadwalResponse.statusCode == 200) {
-            setState(() {
-                hari = jsonDecode(jadwalResponse.body)['hari'];
-                jam = jsonDecode(jadwalResponse.body)['jam'];
-                namaStatus = jsonDecode(statusResponse.body)['nama_status'];
-            });
-        } else {
-            throw Exception('Failed to load status or jadwal data');
-        }
-    } else {
-        throw Exception('Failed to load appointment data');
-    }
-}
-
-
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -232,7 +187,7 @@ class _AppointmentItemState extends State<AppointmentItem> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '$hari, $jam',
+            '${widget.hari}, ${widget.jam}',
             style: GoogleFonts.poppins(fontSize: 12),
           ),
           Text(
@@ -244,7 +199,7 @@ class _AppointmentItemState extends State<AppointmentItem> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                namaStatus ?? 'Loading...',
+                widget.namaStatus ?? 'Loading...',
                 style: GoogleFonts.poppins(fontSize: 14),
               ),
               ElevatedButton(

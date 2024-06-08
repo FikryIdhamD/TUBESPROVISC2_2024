@@ -53,52 +53,42 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
   List<AppointmentItem> scheduledList = [];
 
   try {
-    final response = await http
-        .get(Uri.parse('http://127.0.0.1:8000/api/book_appointments/'));
+    final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/book_appointments/'));
+    final responseStatuses = await http.get(Uri.parse('http://127.0.0.1:8000/api/statuses/'));
+    final responseJadwals = await http.get(Uri.parse('http://127.0.0.1:8000/api/jadwals/'));
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 && responseStatuses.statusCode == 200 && responseJadwals.statusCode == 200) {
       final jsonData = json.decode(response.body);
-      
+      final json2Data = json.decode(responseStatuses.body);
+      final json3Data = json.decode(responseJadwals.body);
+
       // Assuming your API response is a list of appointments in JSON format
       List<dynamic> appointmentsData = jsonData as List<dynamic>;
 
       for (var appointmentData in appointmentsData) {
-        print('Appointment data2: $appointmentData');
         int id = appointmentData['id'];
         int iduser = appointmentData['user_id'];
-        int date = appointmentData['jadwal_id'];
-        String title;
-        int status = appointmentData['status_id'];
-        if (status == 6) {
-          title = 'Finished Appointment';
-        } else {
-          title = 'Scheduled Appointment';
-        }
-
-        print('id: $id');
-        print('iduser: $iduser');
-        print('date: $date');
-        print('title: $title');
-        print('status: $status');
-
+        int jadwalId = appointmentData['jadwal_id'];
+        int statusId = appointmentData['status_id'];
+        
+        // Retrieve status name using firstWhere
+        String statusName = json2Data.firstWhere((status) => status['id_status'] == statusId, orElse: () => {'nama_status': 'Unknown Status'})['nama_status'];
+        
+        // Retrieve jadwal details using firstWhere
+        String jadwalhari = json3Data.firstWhere((jadwal) => jadwal['id_jadwal'] == jadwalId, orElse: () => {'hari': 'Unknown'})['hari'];
+        String jadwalJam = json3Data.firstWhere((jadwal) => jadwal['id_jadwal'] == jadwalId, orElse: () => {'jam': 'Unknown'})['jam'];
+        
+        // Create AppointmentItem
         AppointmentItem item = AppointmentItem(
           id: id,
-          iduser: iduser,
-          date: date,
-          title: title,
-          status: status,
+          title: statusId == 6 ? 'Finished Appointment' : 'Scheduled Appointment',
+          hari: jadwalhari,
+          jam: jadwalJam,
+          namaStatus: statusName,
           onPressed: () {},
         );
-<<<<<<< HEAD
 
-=======
-        print('iiiiid: $id');
-        print('iduser: $iduser');
-        print('date: $date');
-        print('title: $title');
-        print('status: $status');
->>>>>>> 8835499da18280bd6e0b3c9cbe5040d3f57a1777
-        if (status == 6 && iduser == userId) {
+        if (statusId == 6 && iduser == userId) {
           historyList.add(item);
         } else if (iduser == userId) {
           scheduledList.add(item);
@@ -122,6 +112,7 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
     return [[], []];
   }
 }
+
 
 Future<List<List<RecordsItem>>> fetchMedicalRecords(int IdUser) async {
   List<RecordsItem> myselfList = [];
