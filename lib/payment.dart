@@ -369,9 +369,6 @@ class _PaymentMethodsState extends State<PaymentMethods> {
       ),
     );
   }
-<<<<<<< HEAD
-}
-=======
 
   Future<void> processPayment() async {
     final url = Uri.parse('http://127.0.0.1:8000/api/pembayarans/');
@@ -465,4 +462,3 @@ class _PaymentMethodsState extends State<PaymentMethods> {
     );
   }
 }
->>>>>>> 4647f20d1428451c9ba50ed4d17a45b80dbf5ccb

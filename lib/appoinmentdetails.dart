@@ -227,7 +227,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
         "pasien_id": patientId,
         "appointment_id": widget.appointmentId,
         "konsultasi_id": 0,
-        "status_id": statusId + 1,
+        "status_id": statusId,
       }),
     );
 
