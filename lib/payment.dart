@@ -370,6 +370,31 @@ class _PaymentMethodsState extends State<PaymentMethods> {
     );
   }
 
+  Future<void> putTransaction(int idnya) async {
+    final url = Uri.parse('http://127.0.0.1:8000/api/transaksis/$idnya');
+
+    final response = await http.put(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: json.encode({
+        "user_id": userId,
+        "pasien_id": patientId,
+        "appointment_id": widget.appointmentId,
+        "konsultasi_id": 0,
+        "status_id": 2,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      print('Transaction updated successfully.');
+      print('Response body: ${response.body}');
+    } else {
+      print(
+          'Failed to update transaction. Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+  }
+
   Future<void> processPayment() async {
     final url = Uri.parse('http://127.0.0.1:8000/api/pembayarans/');
     if (transaksiId != -1) {
@@ -387,6 +412,7 @@ class _PaymentMethodsState extends State<PaymentMethods> {
 
       if (response.statusCode == 200) {
         updateStatus();
+        putTransaction(transaksiId);
         showDialog(
           context: context,
           barrierDismissible: false,

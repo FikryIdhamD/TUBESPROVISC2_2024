@@ -231,7 +231,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
       }),
     );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       print('Transaction created successfully.');
     } else {
       print(
@@ -258,7 +258,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
       }),
     );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       print('Medical record created successfully.');
     } else {
       print(
