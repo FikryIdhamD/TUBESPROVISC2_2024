@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'recordsdetail.dart';
-
 import 'package:google_fonts/google_fonts.dart';
 
 class Records extends StatelessWidget {
   final String selectedOption;
   final Function(String) onOptionChanged;
-  final List<RecordsItem> RecordsList;
+  final List<RecordsItem> recordsList;
 
   const Records({
     Key? key,
     required this.selectedOption,
     required this.onOptionChanged,
-    this.RecordsList = const [], // Default value for RecordsList
+    this.recordsList = const [], // Default value for recordsList
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    Widget noRecordssWidget = Column(
+    Widget noRecordsWidget = Column(
       children: [
         Image.network(
           'https://img.icons8.com/dotty/80/cancel.png',
@@ -27,14 +26,12 @@ class Records extends StatelessWidget {
         ),
         SizedBox(height: 20),
         Text(
-          'Book an Records!',
+          'Book a Record!',
           style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        SizedBox(
-          height: 10,
-        ),
+        SizedBox(height: 10),
         Text(
-          'You dont have any medicalRecords right now',
+          'You don\'t have any medical records right now',
           style: GoogleFonts.poppins(fontSize: 14),
         ),
       ],
@@ -118,26 +115,27 @@ class Records extends StatelessWidget {
         ),
         SizedBox(height: 10), // Adding space between buttons and list
         Expanded(
-            child: RecordsList.isEmpty
-                ? Padding(
-                    padding: EdgeInsets.only(top: 200.0),
-                    child: Center(child: noRecordssWidget))
-                : Column(
-                    children: List.generate(
-                      RecordsList.length,
-                      (index) {
-                        // Wrap each RecordsItem with Column and add Divider after it
-                        return Column(
-                          children: [
-                            RecordsList[index],
-                            Divider(color: Colors.black), // Horizontal line
-                          ],
-                        );
-                      },
-                    )
-                        .expand((widget) => [widget, SizedBox(height: 8)])
-                        .toList(), // Converts Iterable to List
-                  )),
+          child: recordsList.isEmpty
+              ? Padding(
+                  padding: EdgeInsets.only(top: 200.0),
+                  child: Center(child: noRecordsWidget))
+              : Column(
+                  children: List.generate(
+                    recordsList.length,
+                    (index) {
+                      // Wrap each RecordsItem with Column and add Divider after it
+                      return Column(
+                        children: [
+                          recordsList[index],
+                          Divider(color: Colors.black), // Horizontal line
+                        ],
+                      );
+                    },
+                  )
+                      .expand((widget) => [widget, SizedBox(height: 8)])
+                      .toList(), // Converts Iterable to List
+                ),
+        ),
       ],
     );
   }
@@ -148,7 +146,13 @@ class RecordsItem extends StatelessWidget {
   final String patient;
   final String doctor;
   final String spesialis;
-  final VoidCallback onPressed;
+  final String contactPasien;
+  final String bloodpressure;
+  final String weight;
+  final String height;
+  final String complain;
+  final String hasilPemeriksaan;
+  final String dokumenPdf;
 
   const RecordsItem({
     Key? key,
@@ -156,7 +160,13 @@ class RecordsItem extends StatelessWidget {
     required this.patient,
     required this.doctor,
     required this.spesialis,
-    required this.onPressed,
+    required this.contactPasien,
+    required this.bloodpressure,
+    required this.weight,
+    required this.height,
+    required this.complain,
+    required this.hasilPemeriksaan,
+    required this.dokumenPdf,
   }) : super(key: key);
 
   @override
@@ -185,10 +195,23 @@ class RecordsItem extends StatelessWidget {
               ),
               ElevatedButton(
                 onPressed: () {
-                  // Navigate to AppointmentDetailPage when button is pressed
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => RecordDetailPage()),
+                    MaterialPageRoute(
+                      builder: (context) => RecordDetailPage(
+                        date: date,
+                        patient: patient,
+                        doctor: doctor,
+                        spesialis: spesialis,
+                        contactPasien: contactPasien,
+                        bloodpressure: bloodpressure,
+                        weight: weight,
+                        height: height,
+                        complain: complain,
+                        hasilPemeriksaan: hasilPemeriksaan,
+                        dokumenPdf: dokumenPdf,
+                      ),
+                    ),
                   );
                 },
                 style: ButtonStyle(

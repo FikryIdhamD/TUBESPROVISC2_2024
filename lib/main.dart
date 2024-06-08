@@ -88,7 +88,7 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
           status: status,
           onPressed: () {},
         );
-          print('iiiiid: $id');
+        print('iiiiid: $id');
         print('iduser: $iduser');
         print('date: $date');
         print('title: $title');
@@ -119,8 +119,8 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
 }
 
 Future<List<List<RecordsItem>>> fetchMedicalRecords(int IdUser) async {
-  List<RecordsItem> MyselfList = [];
-  List<RecordsItem> OthersList = [];
+  List<RecordsItem> myselfList = [];
+  List<RecordsItem> othersList = [];
   try {
     final response =
         await http.get(Uri.parse('http://127.0.0.1:8000/api/medical_records/'));
@@ -136,6 +136,19 @@ Future<List<List<RecordsItem>>> fetchMedicalRecords(int IdUser) async {
         }
       }
 
+      // Fetching patient info
+      List<Map<String, dynamic>> patientInfoList =
+          await fetchPatientInfo(IdUser);
+      if (patientInfoList.isEmpty) {
+        print('Error fetching patient info: No matching patient found');
+        return [[], []];
+      }
+
+      // Create a map of patient info by pasien_id for quick lookup
+      Map<int, Map<String, dynamic>> patientInfoMap = {
+        for (var patient in patientInfoList) patient['id_pasien']: patient
+      };
+
       // Fetching appointments data
       final appointmentsResponse = await http
           .get(Uri.parse('http://127.0.0.1:8000/api/book_appointments/'));
@@ -145,8 +158,6 @@ Future<List<List<RecordsItem>>> fetchMedicalRecords(int IdUser) async {
 
         for (var recordData in jsonData) {
           if (recordData['user_id'] == IdUser) {
-            String namaPasien = await fetchPatientName(recordData['pasien_id']);
-
             // Finding the appointment data corresponding to the medical record
             var appointmentData = appointmentsJsonData.firstWhere(
                 (appointment) =>
@@ -237,19 +248,32 @@ Future<List<List<RecordsItem>>> fetchMedicalRecords(int IdUser) async {
                 String dateAndTime =
                     '$dateOnly, $jadwalJam'; // Menggabungkan tanggal dan jam
 
-                RecordsItem medicalRecord = RecordsItem(
-                  date: dateAndTime,
-                  patient: namaPasien,
-                  doctor: dokterName,
-                  spesialis: specialityName,
-                  onPressed: () {},
-                );
+                if (patientInfoMap.containsKey(recordData['pasien_id'])) {
+                  var patientInfo = patientInfoMap[recordData['pasien_id']];
+                  if (patientInfo != null) {
+                    String namaPasien = patientInfo['nama_pasien'];
+                    String contactPasien = patientInfo['no_telp'];
 
-                if (recordData['pasien_id'] == minPasienId &&
-                    recordData['user_id'] == IdUser) {
-                  MyselfList.add(medicalRecord);
-                } else if (recordData['user_id'] == IdUser) {
-                  OthersList.add(medicalRecord);
+                    RecordsItem medicalRecord = RecordsItem(
+                      date: dateAndTime,
+                      patient: namaPasien,
+                      contactPasien: contactPasien,
+                      bloodpressure: recordData['bloodpressure'].toString(),
+                      weight: recordData['berat_badan'].toString(),
+                      height: recordData['tinggi_badan'].toString(),
+                      complain: recordData['complain'],
+                      hasilPemeriksaan: recordData['hasil_pemeriksaan'],
+                      dokumenPdf: recordData['dokumen_pdf'],
+                      doctor: dokterName,
+                      spesialis: specialityName,
+                    );
+
+                    if (recordData['pasien_id'] == minPasienId) {
+                      myselfList.add(medicalRecord);
+                    } else {
+                      othersList.add(medicalRecord);
+                    }
+                  }
                 }
               } else {
                 print(
@@ -264,10 +288,10 @@ Future<List<List<RecordsItem>>> fetchMedicalRecords(int IdUser) async {
         return [];
       }
 
-      print('Medical Records for userId $IdUser: $MyselfList');
-      print('Medical Records for userId $IdUser: $OthersList');
+      print('Medical Records for userId $IdUser: $myselfList');
+      print('Medical Records for userId $IdUser: $othersList');
 
-      return [MyselfList, OthersList];
+      return [myselfList, othersList];
     } else {
       print(
           'Failed to load medical records. Status code: ${response.statusCode}');
@@ -279,38 +303,22 @@ Future<List<List<RecordsItem>>> fetchMedicalRecords(int IdUser) async {
   }
 }
 
-Future<String> fetchPatientName(int pasienId) async {
-  try {
-    final response =
-        await http.get(Uri.parse('http://127.0.0.1:8000/api/pasiens/'));
-
-    if (response.statusCode == 200) {
-      final List<dynamic> pasiens = json.decode(response.body);
-
-      // Cari pasien dengan pasienId yang sesuai
-      final pasien = pasiens.firstWhere(
-        (p) => p['id_pasien'] == pasienId,
-        orElse: () => null,
-      );
-
-      if (pasien != null) {
-        // Ambil nama pasien dari data JSON
-        String namaPasien = pasien['nama_pasien'];
-
-        print('Patient name for pasienId $pasienId: $namaPasien');
-
-        return namaPasien;
-      } else {
-        print('Patient with pasienId $pasienId not found');
-        return 'None';
-      }
+Future<List<Map<String, dynamic>>> fetchPatientInfo(int userId) async {
+  final response =
+      await http.get(Uri.parse('http://127.0.0.1:8000/api/$userId/pasiens'));
+  if (response.statusCode == 200) {
+    final jsonData = json.decode(response.body);
+    if (jsonData is List<dynamic>) {
+      List<Map<String, dynamic>> patientList =
+          jsonData.cast<Map<String, dynamic>>();
+      return patientList;
     } else {
-      print('Failed to load patient data. Status code: ${response.statusCode}');
-      return 'None';
+      print('Unexpected response format: $jsonData');
+      return [];
     }
-  } catch (e) {
-    print('Error fetching patient data: $e');
-    return 'None';
+  } else {
+    print('Failed to load patient info. Status code: ${response.statusCode}');
+    return [];
   }
 }
 
@@ -649,7 +657,7 @@ class _HomeState extends State<Home> {
             selectedOption2 = newOption;
           });
         },
-        RecordsList: selectedOption2 == 'Myself' ? MyselfList : OthersList,
+        recordsList: selectedOption2 == 'Myself' ? MyselfList : OthersList,
       ),
 
       // Widget untuk halaman Transactions
