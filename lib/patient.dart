@@ -307,7 +307,9 @@ class _ChangeDataPageState extends State<ChangeDataPage> {
     _tanggalLahirController =
         TextEditingController(text: widget.patient.tanggalLahir);
     _noTelpController = TextEditingController(text: widget.patient.noTelp);
-    _selectedGender = widget.patient.gender; // Initialize the gender
+    _selectedGender = widget.patient.gender?.isNotEmpty == true
+        ? widget.patient.gender
+        : 'Laki-laki'; // Initialize the gender with a default value if null or empty
   }
 
   Future<void> _updatePatientData() async {

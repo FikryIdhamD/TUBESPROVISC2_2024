@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:math';
+import 'payment.dart';
 import 'package:intl/intl.dart';
 
 class AppointmentDetailPage extends StatefulWidget {
@@ -32,11 +33,21 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
   late int statusId = -1;
   late int hospitalId = -1;
   late int medicalId = -1;
+  late String bloodpressure = 'Loading...';
+  late String tinggi_badan = 'Loading...';
+  late String berat_badan = 'Loading...';
+  late String complain = 'Loading...';
+  late String hasil_pemeriksaan = 'Loading...';
+  late String riwayat_medis = 'Loading...';
+  late String dokumen_pdf = 'Loading..';
 
   @override
   void initState() {
     super.initState();
     fetchAppointmentDetails();
+    if (statusId > 3) {
+      fetchMedicalRecord(widget.appointmentId);
+    }
   }
 
   Future<void> fetchAppointmentDetails() async {
@@ -145,6 +156,12 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
       final medicalrecord = jsonDecode(response.body);
       setState(() {
         this.medicalId = medicalrecord['id_medical_record'];
+        this.bloodpressure = medicalrecord['bloodpressure'];
+        this.berat_badan = medicalrecord['berat_badan'];
+        this.tinggi_badan = medicalrecord['tinggi_badan'];
+        this.complain = medicalrecord['complain'];
+        this.dokumen_pdf = medicalrecord['dokumen_pdf'];
+        this.hasil_pemeriksaan = medicalrecord['hasil_pemeriksaan'];
       });
     } else {
       throw Exception('Failed to load medical record');
@@ -152,6 +169,11 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
   }
 
   Future<void> updateStatus() async {
+    // Periksa apakah statusId sudah 6
+    if (statusId == 6) {
+      print('Status is 6 and cannot be updated.');
+      return;
+    }
     int newStatusId = (statusId == 6) ? 1 : statusId + 1;
 
     final url = Uri.parse(
@@ -181,10 +203,15 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
   }
 
   Future<void> handleStatusUpdate() async {
+    if (statusId == 6) {
+      print('Status is 6 and cannot be updated.');
+      return;
+    }
     if (statusId == 1) {
       await postTransaction();
     } else if (statusId == 3) {
       await postMedicalRecord();
+      await fetchMedicalRecord(widget.appointmentId);
     } else if (statusId == 4) {
       await putMedicalRecord();
     }
@@ -290,10 +317,11 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
         children: [
           _buildDoctorInfo(),
           SizedBox(height: 20),
-          _buildPatientDetails(),
+          if (statusId != 4) _buildPatientDetails(),
           _buildAppointmentProcess(),
           _buildAppointmentDetail(),
           if (statusId == 4) _buildPatientNurseDetails(),
+          if (statusId == 5) _buildPaymentDetails(),
           _buildCircleRow(statusId), // Change text as needed
         ],
       ),
@@ -440,9 +468,58 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
             ),
           ),
           SizedBox(height: 20),
-          _buildDetailRow('BP', "125/85 mm Hg"),
-          _buildDetailRow('Height', "173 cm"),
-          _buildDetailRow('Weight', "59 Kg"),
+          _buildDetailRow('Name', patientName, bold: true),
+          _buildDetailRow('DOB', patientDOB),
+          Divider(
+            color: Color.fromARGB(255, 0, 0,
+                0), // Warna divider, Anda bisa menyesuaikan sesuai keinginan
+            thickness: 1, // Ketebalan divider
+          ),
+          _buildDetailRow('BP', bloodpressure + " mm Hg"),
+          _buildDetailRow('Height', tinggi_badan),
+          _buildDetailRow('Weight', berat_badan),
+          SizedBox(height: 15),
+          Text(
+            'Chief Complaint :',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+          // Divider(),
+          // SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(complain, style: GoogleFonts.poppins()),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentDetails() {
+    return Container(
+      padding: EdgeInsets.all(10.0),
+      margin: EdgeInsets.only(bottom: 16.0),
+      decoration: _boxDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Text(
+              'Payment Details',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+            ),
+          ),
+          SizedBox(height: 20),
+          _buildDetailRow('Consultation fee', 'Rp 333.333'),
+          _buildDetailRow('Laboratory Tests', 'Rp 333.333'),
+          _buildDetailRow('Medications', 'Rp 333.333'),
+          Divider(
+            color: Color.fromARGB(255, 0, 0,
+                0), // Warna divider, Anda bisa menyesuaikan sesuai keinginan
+            thickness: 1, // Ketebalan divider
+          ),
+          _buildDetailRow('Total', 'Rp 999.999'),
         ],
       ),
     );
@@ -638,24 +715,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
                 ),
                 SizedBox(height: 10),
                 Text(
-                  'Cardiology appointment on Thursday, 2 September 2024 at Mereun Hospital Bandung.',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
-                ),
-                Text(
-                  'Scheduled for 18:00',
-                  style: GoogleFonts.poppins(),
-                ),
-                SizedBox(height: 20),
-                Center(
-                  child: Image.network(
-                    'https://img.icons8.com/metro/100/qr-code.png',
-                    width: 100,
-                    height: 100,
-                  ),
-                ),
-                SizedBox(height: 20),
-                Text(
-                  'Upon arrival at the hospital, use the provided QR code to confirm your appointment. Scanning the code will automatically place you in the queue and notify you when it\'s your turn.',
+                  'Appointment finished. Please complete your payment by pressing the following button.',
                   style: GoogleFonts.poppins(fontWeight: FontWeight.normal),
                 ),
               ],
@@ -708,19 +768,20 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
     );
   }
 
-  Widget _buildDetailRow(String title, String value) {
+  Widget _buildDetailRow(String label, String value, {bool bold = false}) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            title,
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+            label,
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
           ),
           Text(
             value,
-            style: GoogleFonts.poppins(),
+            style: GoogleFonts.poppins(
+                fontWeight: bold ? FontWeight.bold : FontWeight.normal),
           ),
         ],
       ),
@@ -825,7 +886,7 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
               fontWeight: FontWeight.normal,
             ),
           ),
-          if (statusId == 1) Spacer(),
+          if (statusId == 1 || statusId == 5) Spacer(),
           if (statusId == 1)
             ElevatedButton(
               onPressed: () {
@@ -839,6 +900,31 @@ class _AppointmentDetailPageState extends State<AppointmentDetailPage> {
               ),
               child: Text(
                 'Cancel Appointment',
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          if (statusId == 5)
+            ElevatedButton(
+              onPressed: () {
+                // Mengarahkan ke halaman paymentMethods
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          PaymentMethods(appointmentId: widget.appointmentId),
+                    ));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color.fromRGBO(36, 188, 52, 1),
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                minimumSize: Size(100, 30),
+              ),
+              child: Text(
+                'Complete Payment',
                 style: GoogleFonts.poppins(
                   fontSize: 10,
                   fontWeight: FontWeight.bold,

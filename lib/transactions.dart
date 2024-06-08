@@ -196,10 +196,10 @@ class TransactionItem extends StatelessWidget {
                   // Call the onPressed function passed from parent
                   onPressed();
                   //Navigate to TransactionDetailPage
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => paymentMethods()),
-                  );
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(builder: (context) => paymentMethods()),
+                  // );
                 },
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(
