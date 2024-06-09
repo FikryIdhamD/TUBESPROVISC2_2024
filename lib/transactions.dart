@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'payment.dart';
-// import 'transactiondetails.dart';
+import 'payment.dart'; // Ensure you have this import if PaymentPage is in another file
+import 'transactiondetails.dart';
 
 class Transactions extends StatelessWidget {
   final String selectedOption;
   final Function(String) onOptionChanged;
-  final List<TransactionItem> TransactionList;
+  final List<TransactionItem> transactionList;
 
   const Transactions({
     Key? key,
     required this.selectedOption,
     required this.onOptionChanged,
-    this.TransactionList = const [], // Default value for TransactionList
+    this.transactionList = const [], // Default value for transactionList
   }) : super(key: key);
 
   @override
@@ -30,13 +29,11 @@ class Transactions extends StatelessWidget {
           'Book an appointment!',
           style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        SizedBox(
-          height: 10,
-        ),
+        SizedBox(height: 10),
         Text(
           selectedOption == 'On going'
-              ? 'You have no ongoing Transaction right now'
-              : 'You have finished Transaction right now',
+              ? 'You have no ongoing transactions right now'
+              : 'You have finished transactions right now',
           style: GoogleFonts.poppins(fontSize: 14),
         ),
       ],
@@ -70,9 +67,7 @@ class Transactions extends StatelessWidget {
                       MaterialStateProperty.all<Size>(Size(10.0, 25.0)),
                   side: MaterialStateProperty.all<BorderSide>(
                     BorderSide(
-                      color: selectedOption == 'History'
-                          ? Colors.black
-                          : Colors.black,
+                      color: Colors.black,
                       width: 1.0,
                     ),
                   ),
@@ -106,9 +101,7 @@ class Transactions extends StatelessWidget {
                       MaterialStateProperty.all<Size>(Size(10.0, 20.0)),
                   side: MaterialStateProperty.all<BorderSide>(
                     BorderSide(
-                      color: selectedOption == 'On going'
-                          ? Colors.black
-                          : Colors.black,
+                      color: Colors.black,
                       width: 1.0,
                     ),
                   ),
@@ -125,28 +118,30 @@ class Transactions extends StatelessWidget {
         SizedBox(height: 10), // Adding space between buttons and list
         Expanded(
           child: Container(
-              child: TransactionList.isEmpty
-                  ? Padding(
-                      padding: EdgeInsets.only(top: 200.0),
-                      child: Center(child: noTransactionsWidget))
-                  : SingleChildScrollView(
-                      child: Column(
-                        children: List.generate(
-                          TransactionList.length,
-                          (index) {
-                            // Wrap each AppointmentItem with Column and add Divider after it
-                            return Column(
-                              children: [
-                                TransactionList[index],
-                                Divider(color: Colors.black), // Horizontal line
-                              ],
-                            );
-                          },
-                        )
-                            .expand((widget) => [widget, SizedBox(height: 8)])
-                            .toList(), // Converts Iterable to List
-                      ),
-                    )),
+            child: transactionList.isEmpty
+                ? Padding(
+                    padding: EdgeInsets.only(top: 200),
+                    child: Center(child: noTransactionsWidget),
+                  )
+                : SingleChildScrollView(
+                    child: Column(
+                      children: List.generate(
+                        transactionList.length,
+                        (index) {
+                          // Wrap each TransactionItem with Column and add Divider after it
+                          return Column(
+                            children: [
+                              transactionList[index],
+                              Divider(color: Colors.black), // Horizontal line
+                            ],
+                          );
+                        },
+                      )
+                          .expand((widget) => [widget, SizedBox(height: 8)])
+                          .toList(), // Converts Iterable to List
+                    ),
+                  ),
+          ),
         ),
       ],
     );
@@ -157,7 +152,8 @@ class TransactionItem extends StatelessWidget {
   final String date;
   final String title;
   final String status;
-  final Function onPressed; // Changed the type to Function
+  final Function(int) onPressed;
+  final int appointmentId;
 
   const TransactionItem({
     Key? key,
@@ -165,6 +161,7 @@ class TransactionItem extends StatelessWidget {
     required this.title,
     required this.status,
     required this.onPressed,
+    required this.appointmentId,
   }) : super(key: key);
 
   @override
@@ -193,13 +190,23 @@ class TransactionItem extends StatelessWidget {
               ),
               ElevatedButton(
                 onPressed: () {
-                  // Call the onPressed function passed from parent
-                  onPressed();
-                  //Navigate to TransactionDetailPage
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(builder: (context) => paymentMethods()),
-                  // );
+                  onPressed(
+                      appointmentId); // Pass appointmentId when button is pressed
+                  if (status == 'Payment Completed') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              TransactionDetails(appointmentId: appointmentId)),
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              PaymentMethods(appointmentId: appointmentId)),
+                    );
+                  }
                 },
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(
