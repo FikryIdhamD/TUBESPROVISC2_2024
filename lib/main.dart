@@ -13,7 +13,6 @@ import 'articles.dart';
 import 'first_screen.dart';
 import 'package:flutter/gestures.dart';
 import 'transactions.dart';
-//import 'payment.dart';
 import 'Onlineconsultation.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -53,11 +52,16 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
   List<AppointmentItem> scheduledList = [];
 
   try {
-    final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/book_appointments/'));
-    final responseStatuses = await http.get(Uri.parse('http://127.0.0.1:8000/api/statuses/'));
-    final responseJadwals = await http.get(Uri.parse('http://127.0.0.1:8000/api/jadwals/'));
+    final response = await http
+        .get(Uri.parse('http://127.0.0.1:8000/api/book_appointments/'));
+    final responseStatuses =
+        await http.get(Uri.parse('http://127.0.0.1:8000/api/statuses/'));
+    final responseJadwals =
+        await http.get(Uri.parse('http://127.0.0.1:8000/api/jadwals/'));
 
-    if (response.statusCode == 200 && responseStatuses.statusCode == 200 && responseJadwals.statusCode == 200) {
+    if (response.statusCode == 200 &&
+        responseStatuses.statusCode == 200 &&
+        responseJadwals.statusCode == 200) {
       final jsonData = json.decode(response.body);
       final json2Data = json.decode(responseStatuses.body);
       final json3Data = json.decode(responseJadwals.body);
@@ -70,18 +74,25 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
         int iduser = appointmentData['user_id'];
         int jadwalId = appointmentData['jadwal_id'];
         int statusId = appointmentData['status_id'];
-        
+
         // Retrieve status name using firstWhere
-        String statusName = json2Data.firstWhere((status) => status['id_status'] == statusId, orElse: () => {'nama_status': 'Unknown Status'})['nama_status'];
-        
+        String statusName = json2Data.firstWhere(
+            (status) => status['id_status'] == statusId,
+            orElse: () => {'nama_status': 'Unknown Status'})['nama_status'];
+
         // Retrieve jadwal details using firstWhere
-        String jadwalhari = json3Data.firstWhere((jadwal) => jadwal['id_jadwal'] == jadwalId, orElse: () => {'hari': 'Unknown'})['hari'];
-        String jadwalJam = json3Data.firstWhere((jadwal) => jadwal['id_jadwal'] == jadwalId, orElse: () => {'jam': 'Unknown'})['jam'];
-        
+        String jadwalhari = json3Data.firstWhere(
+            (jadwal) => jadwal['id_jadwal'] == jadwalId,
+            orElse: () => {'hari': 'Unknown'})['hari'];
+        String jadwalJam = json3Data.firstWhere(
+            (jadwal) => jadwal['id_jadwal'] == jadwalId,
+            orElse: () => {'jam': 'Unknown'})['jam'];
+
         // Create AppointmentItem
         AppointmentItem item = AppointmentItem(
           id: id,
-          title: statusId == 6 ? 'Finished Appointment' : 'Scheduled Appointment',
+          title:
+              statusId == 6 ? 'Finished Appointment' : 'Scheduled Appointment',
           hari: jadwalhari,
           jam: jadwalJam,
           namaStatus: statusName,
@@ -112,7 +123,6 @@ Future<List<List<AppointmentItem>>> fetchDataAndUpdateLists(int userId) async {
     return [[], []];
   }
 }
-
 
 Future<List<List<RecordsItem>>> fetchMedicalRecords(int IdUser) async {
   List<RecordsItem> myselfList = [];
@@ -160,120 +170,124 @@ Future<List<List<RecordsItem>>> fetchMedicalRecords(int IdUser) async {
                     appointment['id'] == recordData['appointment_id'],
                 orElse: () => null);
             if (appointmentData != null) {
-              String dokterName;
-              int dokterSpecialityId;
-              String specialityName;
-              String jadwalJam;
+              // Check if the status_id of appointment is 6
+              if (appointmentData['status_id'] == 6) {
+                String dokterName;
+                int dokterSpecialityId;
+                String specialityName;
+                String jadwalJam;
 
-              // Fetching doctor data
-              final doctorResponse = await http
-                  .get(Uri.parse('http://127.0.0.1:8000/api/dokters/'));
-              if (doctorResponse.statusCode == 200) {
-                final List<dynamic> doctorJsonData =
-                    json.decode(doctorResponse.body);
+                // Fetching doctor data
+                final doctorResponse = await http
+                    .get(Uri.parse('http://127.0.0.1:8000/api/dokters/'));
+                if (doctorResponse.statusCode == 200) {
+                  final List<dynamic> doctorJsonData =
+                      json.decode(doctorResponse.body);
 
-                // Finding the doctor based on dokter_id from appointmentData
-                var doctorData = doctorJsonData.firstWhere(
-                    (doctor) =>
-                        doctor['id_dokter'] == appointmentData['dokter_id'],
-                    orElse: () => null);
-                if (doctorData != null) {
-                  dokterName = doctorData['nama_dokter'];
-                  dokterSpecialityId = doctorData['speciality_id'];
-                  // Fetching speciality data
-                  final specialityResponse = await http
-                      .get(Uri.parse('http://127.0.0.1:8000/api/specialitys/'));
-                  if (specialityResponse.statusCode == 200) {
-                    final List<dynamic> specialityJsonData =
-                        json.decode(specialityResponse.body);
+                  // Finding the doctor based on dokter_id from appointmentData
+                  var doctorData = doctorJsonData.firstWhere(
+                      (doctor) =>
+                          doctor['id_dokter'] == appointmentData['dokter_id'],
+                      orElse: () => null);
+                  if (doctorData != null) {
+                    dokterName = doctorData['nama_dokter'];
+                    dokterSpecialityId = doctorData['speciality_id'];
+                    // Fetching speciality data
+                    final specialityResponse = await http.get(
+                        Uri.parse('http://127.0.0.1:8000/api/specialitys/'));
+                    if (specialityResponse.statusCode == 200) {
+                      final List<dynamic> specialityJsonData =
+                          json.decode(specialityResponse.body);
 
-                    // Finding the speciality based on dokterSpecialityId
-                    var specialityData = specialityJsonData.firstWhere(
-                        (speciality) =>
-                            speciality['id_speciality'] == dokterSpecialityId,
-                        orElse: () => null);
-                    if (specialityData != null) {
-                      specialityName = specialityData['nama_speciality'];
+                      // Finding the speciality based on dokterSpecialityId
+                      var specialityData = specialityJsonData.firstWhere(
+                          (speciality) =>
+                              speciality['id_speciality'] == dokterSpecialityId,
+                          orElse: () => null);
+                      if (specialityData != null) {
+                        specialityName = specialityData['nama_speciality'];
+                      } else {
+                        print(
+                            'Speciality not found for dokterSpecialityId: $dokterSpecialityId');
+                        specialityName = 'Unknown';
+                      }
                     } else {
                       print(
-                          'Speciality not found for dokterSpecialityId: $dokterSpecialityId');
+                          'Failed to load speciality data. Status code: ${specialityResponse.statusCode}');
                       specialityName = 'Unknown';
                     }
                   } else {
                     print(
-                        'Failed to load speciality data. Status code: ${specialityResponse.statusCode}');
-                    specialityName = 'Unknown';
+                        'Doctor not found for dokter_id: ${appointmentData['dokter_id']}');
+                    continue; // Skip this record if doctor not found
                   }
-                } else {
-                  print(
-                      'Doctor not found for dokter_id: ${appointmentData['dokter_id']}');
-                  continue; // Skip this record if doctor not found
-                }
 
-                // Fetching schedule data
-                final scheduleResponse = await http
-                    .get(Uri.parse('http://127.0.0.1:8000/api/jadwals/'));
-                if (scheduleResponse.statusCode == 200) {
-                  final List<dynamic> scheduleJsonData =
-                      json.decode(scheduleResponse.body);
+                  // Fetching schedule data
+                  final scheduleResponse = await http
+                      .get(Uri.parse('http://127.0.0.1:8000/api/jadwals/'));
+                  if (scheduleResponse.statusCode == 200) {
+                    final List<dynamic> scheduleJsonData =
+                        json.decode(scheduleResponse.body);
 
-                  // Finding the schedule based on jadwalId from appointmentData
-                  var scheduleData = scheduleJsonData.firstWhere(
-                      (schedule) =>
-                          schedule['id_jadwal'] == appointmentData['jadwal_id'],
-                      orElse: () => null);
-                  if (scheduleData != null) {
-                    jadwalJam = scheduleData['jam'];
+                    // Finding the schedule based on jadwalId from appointmentData
+                    var scheduleData = scheduleJsonData.firstWhere(
+                        (schedule) =>
+                            schedule['id_jadwal'] ==
+                            appointmentData['jadwal_id'],
+                        orElse: () => null);
+                    if (scheduleData != null) {
+                      jadwalJam = scheduleData['jam'];
+                    } else {
+                      print(
+                          'Schedule not found for jadwalId: ${appointmentData['jadwal_id']}');
+                      jadwalJam = 'Unknown';
+                    }
                   } else {
                     print(
-                        'Schedule not found for jadwalId: ${appointmentData['jadwal_id']}');
+                        'Failed to load schedule data. Status code: ${scheduleResponse.statusCode}');
                     jadwalJam = 'Unknown';
+                  }
+
+                  String dateTimeString =
+                      DateTime.parse(appointmentData['tanggal'])
+                          .toString(); // Konversi DateTime menjadi string
+                  String dateOnly = dateTimeString
+                      .split(" ")[0]; // Mengambil bagian tanggal saja
+
+                  String dateAndTime =
+                      '$dateOnly, $jadwalJam'; // Menggabungkan tanggal dan jam
+
+                  if (patientInfoMap.containsKey(recordData['pasien_id'])) {
+                    var patientInfo = patientInfoMap[recordData['pasien_id']];
+                    if (patientInfo != null) {
+                      String namaPasien = patientInfo['nama_pasien'];
+                      String contactPasien = patientInfo['no_telp'];
+
+                      RecordsItem medicalRecord = RecordsItem(
+                        date: dateAndTime,
+                        patient: namaPasien,
+                        contactPasien: contactPasien,
+                        bloodpressure: recordData['bloodpressure'].toString(),
+                        weight: recordData['berat_badan'].toString(),
+                        height: recordData['tinggi_badan'].toString(),
+                        complain: recordData['complain'],
+                        hasilPemeriksaan: recordData['hasil_pemeriksaan'],
+                        dokumenPdf: recordData['dokumen_pdf'],
+                        doctor: dokterName,
+                        spesialis: specialityName,
+                      );
+
+                      if (recordData['pasien_id'] == minPasienId) {
+                        myselfList.add(medicalRecord);
+                      } else {
+                        othersList.add(medicalRecord);
+                      }
+                    }
                   }
                 } else {
                   print(
-                      'Failed to load schedule data. Status code: ${scheduleResponse.statusCode}');
-                  jadwalJam = 'Unknown';
+                      'Failed to load doctor data. Status code: ${doctorResponse.statusCode}');
                 }
-
-                String dateTimeString =
-                    DateTime.parse(appointmentData['tanggal'])
-                        .toString(); // Konversi DateTime menjadi string
-                String dateOnly = dateTimeString
-                    .split(" ")[0]; // Mengambil bagian tanggal saja
-
-                String dateAndTime =
-                    '$dateOnly, $jadwalJam'; // Menggabungkan tanggal dan jam
-
-                if (patientInfoMap.containsKey(recordData['pasien_id'])) {
-                  var patientInfo = patientInfoMap[recordData['pasien_id']];
-                  if (patientInfo != null) {
-                    String namaPasien = patientInfo['nama_pasien'];
-                    String contactPasien = patientInfo['no_telp'];
-
-                    RecordsItem medicalRecord = RecordsItem(
-                      date: dateAndTime,
-                      patient: namaPasien,
-                      contactPasien: contactPasien,
-                      bloodpressure: recordData['bloodpressure'].toString(),
-                      weight: recordData['berat_badan'].toString(),
-                      height: recordData['tinggi_badan'].toString(),
-                      complain: recordData['complain'],
-                      hasilPemeriksaan: recordData['hasil_pemeriksaan'],
-                      dokumenPdf: recordData['dokumen_pdf'],
-                      doctor: dokterName,
-                      spesialis: specialityName,
-                    );
-
-                    if (recordData['pasien_id'] == minPasienId) {
-                      myselfList.add(medicalRecord);
-                    } else {
-                      othersList.add(medicalRecord);
-                    }
-                  }
-                }
-              } else {
-                print(
-                    'Failed to load doctor data. Status code: ${doctorResponse.statusCode}');
               }
             }
           }
@@ -318,11 +332,14 @@ Future<List<Map<String, dynamic>>> fetchPatientInfo(int userId) async {
   }
 }
 
-Future<List<List<TransactionItem>>> fetchTransactions(int userId) async {
-  List<TransactionItem> historyList2 = [];
+Future<List<List<TransactionItem>>> fetchTransactions(
+    int userId, BuildContext context) async {
+  List<TransactionItem> historyList = [];
   List<TransactionItem> unpaidList = [];
+
   try {
-    final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/transaksis/'));
+    final response =
+        await http.get(Uri.parse('http://127.0.0.1:8000/api/transaksis/'));
 
     if (response.statusCode == 200) {
       final List<dynamic> jsonData = json.decode(response.body);
@@ -330,53 +347,62 @@ Future<List<List<TransactionItem>>> fetchTransactions(int userId) async {
       for (var recordData in jsonData) {
         if (recordData['user_id'] == userId) {
           String title = 'Loading...';
-          String status= 'Loading...';
+          String status = 'Loading...';
+          int appointmentId = recordData['appointment_id'];
 
-          if(recordData['konsultasi_id'] == 0){
+          if (recordData['konsultasi_id'] == 0) {
             title = 'Doctor Appointment';
-          }else if(recordData['konsultasi_id'] != 0){
+          } else {
             title = 'Online Consultation';
           }
-          if(recordData['status_id'] == 2){
+          if (recordData['status_id'] == 2) {
             status = 'Payment Completed';
-          }else{
+          } else {
             status = 'Payment Incompleted';
           }
+
           // Fetch appointment details
-          final appointmentResponse = await http.get(Uri.parse('http://127.0.0.1:8000/api/book_appointments/${recordData['appointment_id']}'));
+          final appointmentResponse = await http.get(Uri.parse(
+              'http://127.0.0.1:8000/api/book_appointments/$appointmentId'));
+
           if (appointmentResponse.statusCode == 200) {
             final appointmentData = json.decode(appointmentResponse.body);
-            final appointmentDateTime = DateTime.parse(appointmentData['tanggal']); // Assuming the date field exists in the appointment data
-            final formattedDate = '${appointmentDateTime.day}-${appointmentDateTime.month}-${appointmentDateTime.year}'; // Format: dd-MM-yyyy
 
-            TransactionItem transaksi = TransactionItem(
-              date: formattedDate,
-              title: title,
-              status: status,
-              onPressed: () {},
-            );
+            // Check if the status_id of appointment is >= 5
+            if (appointmentData['status_id'] >= 5) {
+              final appointmentDateTime =
+                  DateTime.parse(appointmentData['tanggal']);
+              final formattedDate =
+                  '${appointmentDateTime.day}-${appointmentDateTime.month}-${appointmentDateTime.year}';
 
-            if(recordData['status_id'] == 2){
-              historyList2.add(transaksi);
-            }else{
-              unpaidList.add(transaksi);
+              TransactionItem transaction = TransactionItem(
+                date: formattedDate,
+                title: title,
+                status: status,
+                appointmentId: appointmentId,
+                onPressed: (int appointmentId) {},
+              );
+
+              if (recordData['status_id'] == 2) {
+                historyList.add(transaction);
+              } else {
+                unpaidList.add(transaction);
+              }
             }
           } else {
-            print('Failed to load appointment details. Status code: ${appointmentResponse.statusCode}');
+            print(
+                'Failed to load appointment details. Status code: ${appointmentResponse.statusCode}');
           }
         }
       }
 
-      print('Transactions for userId $userId: $historyList2');
-      print('Transactions for userId $userId: $unpaidList');
-
-      return [historyList2, unpaidList];
+      return [historyList, unpaidList];
     } else {
-      print('Failed to load Transactions. Status code: ${response.statusCode}');
+      print('Failed to load transactions. Status code: ${response.statusCode}');
       return [];
     }
   } catch (e) {
-    print('Error fetching Transactions: $e');
+    print('Error fetching transactions: $e');
     return [[], []];
   }
 }
@@ -406,7 +432,8 @@ class _HomeState extends State<Home> {
         MyselfList = lists[0];
       });
     });
-    fetchTransactions(auth.userId).then((lists) {
+
+    fetchTransactions(auth.userId, context).then((lists) {
       setState(() {
         historyList2 = lists[0]; // Assign values to class-level variables
         unpaidList = lists[1];
@@ -705,7 +732,7 @@ class _HomeState extends State<Home> {
             selectedOption3 = newOption;
           });
         },
-        TransactionList:
+        transactionList:
             selectedOption3 == 'History' ? historyList2 : unpaidList,
       ),
     ];
