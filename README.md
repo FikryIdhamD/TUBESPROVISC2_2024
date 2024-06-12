@@ -1,16 +1,45 @@
-# stproject
+# TUBESPROVISC2_2024
 
-A new Flutter project.
+## Overview
 
-## Getting Started
+TUBESPROVISC2_2024 is a project developed as part of a university course assignment. This project is built using Flutter and aims to provide a comprehensive solution for managing medical appointments, consultations, and related activities.
 
-This project is a starting point for a Flutter application.
+## Table of Contents
 
-A few resources to get you started if this is your first Flutter project:
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Database Schema](#database-schema)
+- [Contributing](#contributing)
+- [License](#license)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Features
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- User management
+- Appointment booking
+- Medical consultations
+- Notification system
+- Payment processing
+- Medical records management
+
+## Database Schema
+
+The database schema includes the following tables:
+- `artikels`
+- `book_appointments`
+- `dokters`
+- `hospitals`
+- `jadwals`
+- `konsultasis`
+- `medical_records`
+- `notifikasis`
+- `pasiens`
+- `pembayarans`
+- `specialities`
+- `statuses`
+- `transaksis`
+- `users`
+
+Refer to the database schema file for detailed table structures and relationships.
+
+#### NOTE: Services atau API ada di folder services
