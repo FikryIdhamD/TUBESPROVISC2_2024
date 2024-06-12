@@ -332,81 +332,6 @@ Future<List<Map<String, dynamic>>> fetchPatientInfo(int userId) async {
   }
 }
 
-Future<List<List<TransactionItem>>> fetchTransactions(
-    int userId, BuildContext context) async {
-  List<TransactionItem> historyList = [];
-  List<TransactionItem> unpaidList = [];
-
-  try {
-    final response =
-        await http.get(Uri.parse('http://127.0.0.1:8000/api/transaksis/'));
-
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonData = json.decode(response.body);
-
-      for (var recordData in jsonData) {
-        if (recordData['user_id'] == userId) {
-          String title = 'Loading...';
-          String status = 'Loading...';
-          int appointmentId = recordData['appointment_id'];
-
-          if (recordData['konsultasi_id'] == 0) {
-            title = 'Doctor Appointment';
-          } else {
-            title = 'Online Consultation';
-          }
-          if (recordData['status_id'] == 2) {
-            status = 'Payment Completed';
-          } else {
-            status = 'Payment Incompleted';
-          }
-
-          // Fetch appointment details
-          final appointmentResponse = await http.get(Uri.parse(
-              'http://127.0.0.1:8000/api/book_appointments/$appointmentId'));
-
-          if (appointmentResponse.statusCode == 200) {
-            final appointmentData = json.decode(appointmentResponse.body);
-
-            // Check if the status_id of appointment is >= 5
-            if (appointmentData['status_id'] >= 5) {
-              final appointmentDateTime =
-                  DateTime.parse(appointmentData['tanggal']);
-              final formattedDate =
-                  '${appointmentDateTime.day}-${appointmentDateTime.month}-${appointmentDateTime.year}';
-
-              TransactionItem transaction = TransactionItem(
-                date: formattedDate,
-                title: title,
-                status: status,
-                appointmentId: appointmentId,
-                onPressed: (int appointmentId) {},
-              );
-
-              if (recordData['status_id'] == 2) {
-                historyList.add(transaction);
-              } else {
-                unpaidList.add(transaction);
-              }
-            }
-          } else {
-            print(
-                'Failed to load appointment details. Status code: ${appointmentResponse.statusCode}');
-          }
-        }
-      }
-
-      return [historyList, unpaidList];
-    } else {
-      print('Failed to load transactions. Status code: ${response.statusCode}');
-      return [];
-    }
-  } catch (e) {
-    print('Error fetching transactions: $e');
-    return [[], []];
-  }
-}
-
 class _HomeState extends State<Home> {
   List<AppointmentItem> historyList = []; // Define class-level variables
   List<AppointmentItem> scheduledList = [];
@@ -430,13 +355,6 @@ class _HomeState extends State<Home> {
       setState(() {
         OthersList = lists[1]; // Assign values to class-level variables
         MyselfList = lists[0];
-      });
-    });
-
-    fetchTransactions(auth.userId, context).then((lists) {
-      setState(() {
-        historyList2 = lists[0]; // Assign values to class-level variables
-        unpaidList = lists[1];
       });
     });
   }
@@ -557,7 +475,7 @@ class _HomeState extends State<Home> {
                                     child: Image.network(
                                       artikelProvider
                                           .artikels[index].fotoArtikel,
-                                      height: 100,
+                                      height: 70,
                                       width: double.infinity,
                                       fit: BoxFit.cover,
                                     ),
@@ -732,8 +650,7 @@ class _HomeState extends State<Home> {
             selectedOption3 = newOption;
           });
         },
-        transactionList:
-            selectedOption3 == 'History' ? historyList2 : unpaidList,
+        userId: auth.userId, // Pass userId here
       ),
     ];
 

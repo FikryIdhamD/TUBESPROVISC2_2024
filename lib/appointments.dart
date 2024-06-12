@@ -124,7 +124,7 @@ class Appointments extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: 10),// Adding space between buttons and list
+        SizedBox(height: 10), // Adding space between buttons and list
         Expanded(
           child: Container(
               child: appointmentList.isEmpty
@@ -132,7 +132,7 @@ class Appointments extends StatelessWidget {
                       padding: EdgeInsets.only(top: 200.0),
                       child: Center(child: noAppointmentsWidget))
                   : SingleChildScrollView(
-                    child: Column(
+                      child: Column(
                         children: List.generate(
                           appointmentList.length,
                           (index) {
@@ -148,7 +148,7 @@ class Appointments extends StatelessWidget {
                             .expand((widget) => [widget, SizedBox(height: 8)])
                             .toList(), // Converts Iterable to List
                       ),
-                  )),
+                    )),
         ),
       ],
     );
@@ -177,7 +177,6 @@ class AppointmentItem extends StatefulWidget {
   _AppointmentItemState createState() => _AppointmentItemState();
 }
 
-
 class _AppointmentItemState extends State<AppointmentItem> {
   @override
   Widget build(BuildContext context) {
@@ -192,7 +191,8 @@ class _AppointmentItemState extends State<AppointmentItem> {
           ),
           Text(
             widget.title,
-            style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold),
+            style:
+                GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 4),
           Row(
@@ -207,15 +207,19 @@ class _AppointmentItemState extends State<AppointmentItem> {
                   widget.onPressed();
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => AppointmentDetailPage(appointmentId: widget.id)),
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            AppointmentDetailPage(appointmentId: widget.id)),
                   );
                 },
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                  backgroundColor:
+                      MaterialStateProperty.all<Color>(Colors.white),
                   padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
                     EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
                   ),
-                  minimumSize: MaterialStateProperty.all<Size>(Size(10.0, 20.0)),
+                  minimumSize:
+                      MaterialStateProperty.all<Size>(Size(10.0, 20.0)),
                   shape: MaterialStateProperty.all<OutlinedBorder>(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20.0),

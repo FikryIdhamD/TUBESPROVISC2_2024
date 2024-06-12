@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:stproject/main.dart';
 import 'bloc.dart';
-// import 'dart:developer' as developer;
 
 class ArticlePage extends StatefulWidget {
   @override
@@ -13,7 +12,6 @@ class ArticlePage extends StatefulWidget {
 }
 
 class _ArticlePageState extends State<ArticlePage> {
-  
   late List<Artikel> filteredArticles;
   late List<Artikel> allArticles;
 
@@ -31,7 +29,11 @@ class _ArticlePageState extends State<ArticlePage> {
       if (query.isEmpty) {
         filteredArticles = allArticles;
       } else {
-        filteredArticles = allArticles.where((article) => article.titleArtikel.toLowerCase().contains(query.toLowerCase())).toList();
+        filteredArticles = allArticles
+            .where((article) => article.titleArtikel
+                .toLowerCase()
+                .contains(query.toLowerCase()))
+            .toList();
       }
     });
   }
@@ -98,7 +100,8 @@ class _ArticlePageState extends State<ArticlePage> {
                                   color: Colors.grey.withOpacity(0.5),
                                   spreadRadius: 2,
                                   blurRadius: 5,
-                                  offset: Offset(0, 3), // changes position of shadow
+                                  offset: Offset(
+                                      0, 3), // changes position of shadow
                                 ),
                               ],
                             ),
@@ -121,7 +124,8 @@ class _ArticlePageState extends State<ArticlePage> {
                                 // Judul dan teks
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         filteredArticles[index].titleArtikel,
@@ -132,7 +136,8 @@ class _ArticlePageState extends State<ArticlePage> {
                                       ),
                                       SizedBox(height: 8),
                                       Text(
-                                        filteredArticles[index].deskripsiArtikel,
+                                        filteredArticles[index]
+                                            .deskripsiArtikel,
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -164,7 +169,7 @@ class ArticleDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-    double imageHeight = screenWidth * 0.1;
+    double imageHeight = screenWidth * 0.6; // Adjust height for better view
     return Scaffold(
       appBar: AppBar(
         // Tombol kembali pada AppBar
@@ -175,36 +180,39 @@ class ArticleDetailPage extends StatelessWidget {
           },
         ),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Judul artikel
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16.0, left: 20.0),
-            child: Text(
-              article.titleArtikel,
-              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Judul artikel
+            Padding(
+              padding:
+                  const EdgeInsets.only(bottom: 16.0, left: 20.0, right: 20.0),
+              child: Text(
+                article.titleArtikel,
+                style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-          // Gambar artikel
-          SizedBox(
-            width: screenWidth,
-            height: imageHeight,
-            child: Image.network(
-              article.fotoArtikel,
-              fit: BoxFit.cover,
+            // Gambar artikel
+            SizedBox(
+              width: screenWidth,
+              height: imageHeight,
+              child: Image.network(
+                article.fotoArtikel,
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
-          SizedBox(height: 16),
-          // Konten artikel
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 35.0),
-            child: Text(
-              article.deskripsiArtikel,
-              style: TextStyle(fontSize: 14),
+            SizedBox(height: 16),
+            // Konten artikel
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 35.0),
+              child: Text(
+                article.deskripsiArtikel,
+                style: TextStyle(fontSize: 14),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
