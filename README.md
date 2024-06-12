@@ -7,11 +7,7 @@ TUBESPROVISC2_2024 is a project developed as part of a university course assignm
 ## Table of Contents
 
 - [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
 - [Database Schema](#database-schema)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Features
 
